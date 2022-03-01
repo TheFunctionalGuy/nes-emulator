@@ -1,5 +1,6 @@
 pub struct CPU {
     pub register_a: u8,
+    pub register_x: u8,
     pub status: u8,
     pub program_counter: u16,
 }
@@ -16,6 +17,7 @@ impl CPU {
     pub fn new() -> Self {
         CPU {
             register_a: 0,
+            register_x: 0,
             status: 0,
             program_counter: 0,
         }
@@ -35,15 +37,29 @@ impl CPU {
                     self.program_counter += 1;
                     self.register_a = param;
 
-                    // Set/Unset (Z)ero flag
                     if self.register_a == 0 {
                         self.status |= ZERO_FLAG;
                     } else {
                         self.status &= ZERO_FLAG_INV;
                     }
 
-                    // Set/Unset (N)egative flag
                     if self.register_a & NEGATIVE_FLAG != 0 {
+                        self.status |= NEGATIVE_FLAG;
+                    } else {
+                        self.status &= NEGATIVE_FLAG_INV;
+                    }
+                }
+                // TAX (0xAA)
+                0xAA => {
+                    self.register_x = self.register_a;
+
+                    if self.register_x == 0 {
+                        self.status |= ZERO_FLAG;
+                    } else {
+                        self.status &= ZERO_FLAG_INV;
+                    }
+
+                    if self.register_x & NEGATIVE_FLAG != 0 {
                         self.status |= NEGATIVE_FLAG;
                     } else {
                         self.status &= NEGATIVE_FLAG_INV;
@@ -67,17 +83,13 @@ mod test {
     fn test_0xa9_lda_immediate_load_data() {
         let mut cpu = CPU::new();
 
-        // Test binary
         let test_binary = vec![0xA9, 0x05, 0x00];
         cpu.interpret(test_binary);
 
-        // Register A content = 0x05
         assert_eq!(cpu.register_a, 0x05);
-
-        // Zero flag unset
+        // Z flag unset
         assert!(cpu.status & 0b0000_0010 == 0b00);
-
-        // Negative flag unset
+        // N flag unset
         assert!(cpu.status & 0b1000_0000 == 0);
     }
 
@@ -85,12 +97,22 @@ mod test {
     fn test_0xa9_lda_zero_flag() {
         let mut cpu = CPU::new();
 
-        // Test binary
         let test_binary = vec![0xA9, 0x00, 0x00];
         cpu.interpret(test_binary);
 
-        // Zero flag set
+        // Z flag set
         assert!(cpu.status & 0b0000_0010 == 0b10);
+    }
+
+    #[test]
+    fn test_0xaa_tax_move_a_to_x() {
+        let mut cpu = CPU::new();
+        cpu.register_a = 10;
+
+        let test_binary = vec![0xaa, 0x00];
+        cpu.interpret(test_binary);
+
+        assert_eq!(cpu.register_x, 10);
     }
 }
 
