@@ -12,6 +12,7 @@ pub struct CPU {
 	pub register_x: u8,
 	pub status: u8,
 	pub program_counter: u16,
+	memory: [u8; 0xFFFF],
 }
 
 impl CPU {
@@ -21,9 +22,31 @@ impl CPU {
 			register_x: 0,
 			status: 0,
 			program_counter: 0,
+			memory: [0; 0xFFFF],
 		}
 	}
 
+	// Memory methods
+	fn mem_read(&self, addr: u16) -> u8 {
+		self.memory[addr as usize]
+	}
+
+	fn mem_write(&mut self, addr: u16, data: u8) {
+		self.memory[addr as usize] = data;
+	}
+
+	// CPU operations
+	pub fn load(&mut self, program: Vec<u8>) {
+		self.memory[0x8000..(0x8000 + program.len())].copy_from_slice(&program[..]);
+		self.program_counter = 0x8000;
+	}
+
+	pub fn load_and_run(&mut self, program: Vec<u8>) {
+		self.load(program);
+		self.run();
+	}
+
+	// Instructions
 	fn lda(&mut self, value: u8) {
 		self.register_a = value;
 		self.update_zero_and_negative_flags(self.register_a);
@@ -53,17 +76,15 @@ impl CPU {
 		}
 	}
 
-	pub fn interpret(&mut self, program: Vec<u8>) {
-		self.program_counter = 0;
-
+	pub fn run(&mut self) {
 		loop {
-			let opcode = program[self.program_counter as usize];
+			let opcode = self.mem_read(self.program_counter);
 			self.program_counter += 1;
 
 			match opcode {
 				// LDA (0xA9)
 				0xA9 => {
-					let param = program[self.program_counter as usize];
+					let param = self.mem_read(self.program_counter);
 					self.program_counter += 1;
 
 					self.lda(param);
@@ -91,7 +112,7 @@ mod test {
 		let mut cpu = CPU::new();
 
 		let test_binary = vec![0xA9, 0x05, 0x00];
-		cpu.interpret(test_binary);
+		cpu.load_and_run(test_binary);
 
 		assert_eq!(cpu.register_a, 0x05);
 		// Z flag unset
@@ -105,7 +126,7 @@ mod test {
 		let mut cpu = CPU::new();
 
 		let test_binary = vec![0xA9, 0x00, 0x00];
-		cpu.interpret(test_binary);
+		cpu.load_and_run(test_binary);
 
 		// Z flag set
 		assert!(cpu.status & 0b0000_0010 == 0b10);
@@ -117,7 +138,7 @@ mod test {
 		cpu.register_a = 10;
 
 		let test_binary = vec![0xAA, 0x00];
-		cpu.interpret(test_binary);
+		cpu.load_and_run(test_binary);
 
 		assert_eq!(cpu.register_x, 10);
 	}
@@ -128,7 +149,7 @@ mod test {
 		cpu.register_x = 0xFF;
 
 		let test_binary = vec![0xE8, 0xE8, 0x00];
-		cpu.interpret(test_binary);
+		cpu.load_and_run(test_binary);
 
 		assert_eq!(cpu.register_x, 1);
 	}
@@ -138,7 +159,7 @@ mod test {
 		let mut cpu = CPU::new();
 
 		let test_binary = vec![0xA9, 0xC0, 0xAA, 0xE8, 0x00];
-		cpu.interpret(test_binary);
+		cpu.load_and_run(test_binary);
 
 		assert_eq!(cpu.register_x, 0xC1);
 	}
