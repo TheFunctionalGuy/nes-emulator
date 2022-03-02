@@ -1,3 +1,5 @@
+use crate::opcodes::OPCODES_MAP;
+
 /// CPU emulator for 6502/2A03
 // Constants
 // Bit masks for all flags and inverted masks
@@ -190,45 +192,30 @@ impl CPU {
 	}
 
 	pub fn run(&mut self) {
+		let opcodes = &(*OPCODES_MAP);
+
 		loop {
-			let opcode = self.mem_read(self.program_counter);
+			let code = self.mem_read(self.program_counter);
+			let operation = opcodes.get(&code).expect("Opcode not yet implemented!");
 			self.program_counter += 1;
 
-			match opcode {
-				// STA Zero Page (0x85)
-				0x85 => {
-					self.sta(&AddressingMode::ZeroPage);
-					self.program_counter += 1;
+			match code {
+				// * STA
+				0x85 | 0x95 | 0x8D | 0x9D | 0x99 | 0x81 | 0x91 => {
+					self.sta(&operation.addressing_mode);
 				}
-				// STA Zero Page X (0x95)
-				0x95 => {
-					self.sta(&AddressingMode::ZeroPage_X);
-					self.program_counter += 1;
+				// * LDA
+				0xA9 | 0xA5 | 0xB5 | 0xAD | 0xBD | 0xB9 | 0xA1 | 0xB1 => {
+					self.lda(&operation.addressing_mode);
 				}
-				// LDA Zero Page (0xA5)
-				0xA5 => {
-					self.lda(&AddressingMode::ZeroPage);
-					self.program_counter += 1;
-				}
-				// LDA Immediate (0xA9)
-				0xA9 => {
-					self.lda(&AddressingMode::Immediate);
-					self.program_counter += 1;
-				}
-				// LDA Absolute (0xAD)
-				0xAD => {
-					self.lda(&AddressingMode::Absolute);
-					self.program_counter += 2;
-				}
-				// TAX (0xAA)
 				0xAA => self.tax(),
-				// INX (0xE8)
 				0xE8 => self.inx(),
-				// BRK (0x00)
-				0x00 => {
-					return;
-				}
-				_ => todo!("opcode not yet implemented!"),
+				0x00 => return,
+				_ => todo!("Opcode not yet implemented!"),
+			}
+
+			if operation.length > 1 {
+				self.program_counter += (operation.length - 1) as u16;
 			}
 		}
 	}
