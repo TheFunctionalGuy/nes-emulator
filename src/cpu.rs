@@ -33,20 +33,15 @@ pub enum AddressingMode {
 	NoneAddressing,
 }
 
-impl CPU {
-	pub fn new() -> Self {
-		CPU {
-			register_a: 0,
-			register_x: 0,
-			register_y: 0,
-			status: 0,
-			program_counter: 0,
-			memory: [0; 0xFFFF],
-		}
-	}
+// * Memory Operations
+trait Mem {
+	fn mem_read(&self, addr: u16) -> u8;
+	fn mem_read_u16(&self, addr: u16) -> u16;
+	fn mem_write(&mut self, addr: u16, data: u8);
+	fn mem_write_u16(&mut self, addr: u16, data: u16);
+}
 
-	// TODO: Move to trait
-	// Memory methods
+impl Mem for CPU {
 	fn mem_read(&self, addr: u16) -> u8 {
 		self.memory[addr as usize]
 	}
@@ -78,8 +73,21 @@ impl CPU {
 		self.mem_write(addr, lo);
 		self.mem_write(addr + 1, hi);
 	}
+}
 
-	// CPU operations
+impl CPU {
+	pub fn new() -> Self {
+		CPU {
+			register_a: 0,
+			register_x: 0,
+			register_y: 0,
+			status: 0,
+			program_counter: 0,
+			memory: [0; 0xFFFF],
+		}
+	}
+
+	// * CPU Operations
 	pub fn load(&mut self, program: Vec<u8>) {
 		self.memory[0x8000..(0x8000 + program.len())].copy_from_slice(&program[..]);
 		self.mem_write_u16(0xFFFC, 0x8000);
@@ -102,6 +110,7 @@ impl CPU {
 		self.run();
 	}
 
+	// * Helper Operations
 	fn get_operand_address(&self, mode: &AddressingMode) -> u16 {
 		match mode {
 			// * Immediate
@@ -152,7 +161,7 @@ impl CPU {
 		}
 	}
 
-	// Instructions
+	// * Instructions
 	fn lda(&mut self, mode: &AddressingMode) {
 		let addr = self.get_operand_address(mode);
 		let value = self.mem_read(addr);
@@ -177,6 +186,7 @@ impl CPU {
 		self.update_zero_and_negative_flags(self.register_x);
 	}
 
+	// * Helper function for instruction
 	fn update_zero_and_negative_flags(&mut self, result: u8) {
 		if result == 0 {
 			self.status |= ZERO_FLAG;
