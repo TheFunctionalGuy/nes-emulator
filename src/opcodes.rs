@@ -33,7 +33,13 @@ lazy_static! {
 		// * None addressing instructions
 		OpCode::new(0x00, "BRK", 1, 7, AddressingMode::NoneAddressing),
 		OpCode::new(0xAA, "TAX", 1, 2, AddressingMode::NoneAddressing),
+		OpCode::new(0x8A, "TXA", 1, 2, AddressingMode::NoneAddressing),
+		OpCode::new(0xCA, "DEX", 1, 2, AddressingMode::NoneAddressing), // ! Untested
 		OpCode::new(0xE8, "INX", 1, 2, AddressingMode::NoneAddressing),
+		OpCode::new(0xA8, "TAY", 1, 2, AddressingMode::NoneAddressing), // ! Untested
+		OpCode::new(0x98, "TYA", 1, 2, AddressingMode::NoneAddressing), // ! Untested
+		OpCode::new(0x88, "DEY", 1, 2, AddressingMode::NoneAddressing), // ! Untested
+		OpCode::new(0xC8, "INY", 1, 2, AddressingMode::NoneAddressing), // ! Untested
 		// * STA
 		OpCode::new(0x85, "STA", 2, 3, AddressingMode::ZeroPage),
 		OpCode::new(0x95, "STA", 2, 4, AddressingMode::ZeroPage_X),

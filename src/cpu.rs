@@ -197,6 +197,11 @@ impl CPU {
 		self.update_zero_and_negative_flags(self.register_x);
 	}
 
+	fn txa(&mut self) {
+		self.register_a = self.register_x;
+		self.update_zero_and_negative_flags(self.register_a);
+	}
+
 	fn inx(&mut self) {
 		self.register_x = self.register_x.wrapping_add(1);
 		self.update_zero_and_negative_flags(self.register_x);
@@ -245,6 +250,7 @@ impl CPU {
 					self.ldy(&operation.addressing_mode);
 				}
 				0xAA => self.tax(),
+				0x8A => self.txa(),
 				0xE8 => self.inx(),
 				0x00 => return,
 				_ => todo!("Operation with opcode 0x{:02x} not yet implemented", code),
@@ -348,6 +354,20 @@ mod test {
 		cpu.load_and_run(binary);
 
 		assert_eq!(cpu.register_x, 0x0A);
+	}
+
+	#[test]
+	fn test_0x8a_txa_move_x_to_a() {
+		let mut cpu = CPU::new();
+
+		/* Disassembly:
+		0000   A2 0A                LDX #$0A
+		0002   8A                   TXA
+		0003   00                   BRK */
+		let binary = vec![0xA2, 0x0A, 0x8A, 0x00];
+		cpu.load_and_run(binary);
+
+		assert_eq!(cpu.register_a, 0x0A);
 	}
 
 	#[test]
