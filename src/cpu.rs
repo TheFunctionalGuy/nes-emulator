@@ -544,7 +544,16 @@ mod test {
 
 	#[test]
 	fn test_0x84_sty_zero_page() {
-		assert!(false);
+		let mut cpu = CPU::new();
+
+		/* Disassembly:
+		0000   A0 11                LDY #$11
+		0002   84 17                STY $17
+		0004   00                   BRK */
+		let binary = vec![0xA0, 0x11, 0x84, 0x17, 0x00];
+		cpu.load_and_run(binary);
+
+		assert_eq!(cpu.memory[0x0017], 0x11);
 	}
 
 	#[test]
