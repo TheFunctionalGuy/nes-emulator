@@ -170,6 +170,22 @@ impl CPU {
 		self.update_zero_and_negative_flags(self.register_a);
 	}
 
+	fn ldx(&mut self, mode: &AddressingMode) {
+		let addr = self.get_operand_address(mode);
+		let value = self.mem_read(addr);
+
+		self.register_x = value;
+		self.update_zero_and_negative_flags(self.register_x);
+	}
+
+	fn ldy(&mut self, mode: &AddressingMode) {
+		let addr = self.get_operand_address(mode);
+		let value = self.mem_read(addr);
+
+		self.register_y = value;
+		self.update_zero_and_negative_flags(self.register_y);
+	}
+
 	fn sta(&mut self, mode: &AddressingMode) {
 		let addr = self.get_operand_address(mode);
 
@@ -208,7 +224,7 @@ impl CPU {
 			let code = self.mem_read(self.program_counter);
 			let operation = opcodes
 				.get(&code)
-				.expect(&format!("Opcode 0x{:02X} not yet implemented!", code));
+				.unwrap_or_else(|| panic!("Opcode 0x{:02X} not yet implemented!", code));
 			self.program_counter += 1;
 
 			match code {
@@ -220,10 +236,18 @@ impl CPU {
 				0xA9 | 0xA5 | 0xB5 | 0xAD | 0xBD | 0xB9 | 0xA1 | 0xB1 => {
 					self.lda(&operation.addressing_mode);
 				}
+				// * LDX
+				0xA2 | 0xA6 | 0xB6 | 0xAE | 0xBE => {
+					self.ldx(&operation.addressing_mode);
+				}
+				// * LDY
+				0xA0 | 0xA4 | 0xB4 | 0xAC | 0xBC => {
+					self.ldy(&operation.addressing_mode);
+				}
 				0xAA => self.tax(),
 				0xE8 => self.inx(),
 				0x00 => return,
-				_ => todo!("Opcode not yet implemented!"),
+				_ => todo!("Operation with opcode 0x{:02x} not yet implemented", code),
 			}
 
 			if operation.length > 1 {
@@ -237,6 +261,7 @@ impl CPU {
 mod test {
 	use super::*;
 
+	// TODO: Rename tests
 	#[test]
 	fn test_0x85_sta_to_memory() {
 		let mut cpu = CPU::new();
@@ -327,6 +352,20 @@ mod test {
 	}
 
 	#[test]
+	fn test_0xa6_ldx_from_memory() {
+		let mut cpu = CPU::new();
+		cpu.mem_write(0x00AF, 0x1F);
+
+		/* Disassembly:
+		0000   A6 AF                LDX $AF
+		0002   00                   BRK */
+		let binary = vec![0xA6, 0xAF, 0x00];
+		cpu.load_and_run(binary);
+
+		assert_eq!(cpu.register_x, 0x1F);
+	}
+
+	#[test]
 	fn test_0xad_lda_from_memory() {
 		let mut cpu = CPU::new();
 		cpu.mem_write(0x0102, 0xFF);
@@ -338,6 +377,31 @@ mod test {
 		cpu.load_and_run(binary);
 
 		assert_eq!(cpu.register_a, 0xFF);
+	}
+
+	// TODO: Implement after TYA
+	#[test]
+	fn test_0xae_ldx_zero_page_y() {
+		let mut cpu = CPU::new();
+		cpu.mem_write(0x0112, 0xBA);
+
+		/* Disassembly:
+		 */
+		let binary = vec![0xA0, 0x13, 0xAE, 0xFF, 0x00];
+		cpu.load_and_run(binary);
+
+		assert_eq!(cpu.register_x, 0xBA);
+	}
+
+	#[test]
+	fn test_0xbc_ldy_absolute_x() {
+		let mut cpu = CPU::new();
+		cpu.mem_write(0x4157, 0x05);
+
+		let binary = vec![0xA2, 0x15, 0xBC, 0x42, 0x41, 0x00];
+		cpu.load_and_run(binary);
+
+		assert_eq!(cpu.register_y, 0x05);
 	}
 
 	#[test]

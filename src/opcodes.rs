@@ -47,10 +47,22 @@ lazy_static! {
 		OpCode::new(0xA5, "LDA", 2, 3, AddressingMode::ZeroPage),
 		OpCode::new(0xB5, "LDA", 2, 4, AddressingMode::ZeroPage_X),         // ! Untested
 		OpCode::new(0xAD, "LDA", 3, 4, AddressingMode::Absolute),
-		OpCode::new(0xBD, "LDA", 3, 4 /*+1*/, AddressingMode::Absolute_X),  // ! Untested
+		OpCode::new(0xBD, "LDA", 3, 4 /*+1*/, AddressingMode::Absolute_X),
 		OpCode::new(0xB9, "LDA", 3, 4 /*+1*/, AddressingMode::Absolute_Y),  // ! Untested
 		OpCode::new(0xA1, "LDA", 2, 6, AddressingMode::Indirect_X),         // ! Untested
 		OpCode::new(0xB1, "LDA", 2, 5 /*+1*/, AddressingMode::Indirect_Y),  // ! Untested
+		// * LDX
+		OpCode::new(0xA2, "LDX", 2, 2, AddressingMode::Immediate),
+		OpCode::new(0xA6, "LDX", 2, 3, AddressingMode::ZeroPage),
+		OpCode::new(0xB6, "LDX", 2, 4, AddressingMode::ZeroPage_Y),
+		OpCode::new(0xAE, "LDX", 3, 4, AddressingMode::Absolute),
+		OpCode::new(0xBE, "LDX", 3, 4 /*+1*/, AddressingMode::Absolute_Y),
+		// * LDY
+		OpCode::new(0xA0, "LDY", 2, 2, AddressingMode::Immediate),
+		OpCode::new(0xA4, "LDY", 2, 3, AddressingMode::ZeroPage),
+		OpCode::new(0xB4, "LDY", 2, 4, AddressingMode::ZeroPage_X),
+		OpCode::new(0xAC, "LDY", 3, 4, AddressingMode::Absolute),
+		OpCode::new(0xBC, "LDY", 3, 4 /*+1*/, AddressingMode::Absolute_X),
 	];
 
 	pub static ref OPCODES_MAP: HashMap<u8, &'static OpCode> = {
