@@ -33,6 +33,11 @@ impl CPU {
         self.update_zero_and_negative_flags(self.register_x);
     }
 
+    fn inx(&mut self) {
+        self.register_x = self.register_x.wrapping_add(1);
+        self.update_zero_and_negative_flags(self.register_x);
+    }
+
     fn update_zero_and_negative_flags(&mut self, result: u8) {
         if result == 0 {
             self.status |= ZERO_FLAG;
@@ -64,11 +69,13 @@ impl CPU {
                 }
                 // TAX (0xAA)
                 0xAA => self.tax(),
+                // INX (0xE8)
+                0xE8 => self.inx(),
                 // BRK (0x00)
                 0x00 => {
                     return;
                 }
-                _ => todo!(),
+                _ => todo!("opcode not yet implemented!"),
             }
         }
     }
@@ -108,10 +115,31 @@ mod test {
         let mut cpu = CPU::new();
         cpu.register_a = 10;
 
-        let test_binary = vec![0xaa, 0x00];
+        let test_binary = vec![0xAA, 0x00];
         cpu.interpret(test_binary);
 
         assert_eq!(cpu.register_x, 10);
+    }
+
+    #[test]
+    fn test_inx_overflow() {
+        let mut cpu = CPU::new();
+        cpu.register_x = 0xFF;
+
+        let test_binary = vec![0xE8, 0xE8, 0x00];
+        cpu.interpret(test_binary);
+
+        assert_eq!(cpu.register_x, 1);
+    }
+
+    #[test]
+    fn test_5_ops_working_together() {
+        let mut cpu = CPU::new();
+
+        let test_binary = vec![0xA9, 0xC0, 0xAA, 0xE8, 0x00];
+        cpu.interpret(test_binary);
+
+        assert_eq!(cpu.register_x, 0xC1);
     }
 }
 
