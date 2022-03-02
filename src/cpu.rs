@@ -237,17 +237,6 @@ mod test {
 	}
 
 	#[test]
-	fn test_0xa9_lda_zero_flag() {
-		let mut cpu = CPU::new();
-
-		let test_binary = vec![0xA9, 0x00, 0x00];
-		cpu.load_and_run(test_binary);
-
-		// Z flag set
-		assert!(cpu.status & 0b0000_0010 == 0b10);
-	}
-
-	#[test]
 	fn test_0xa5_lda_from_memory() {
 		let mut cpu = CPU::new();
 		cpu.mem_write(0x10, 0x55);
@@ -259,6 +248,17 @@ mod test {
 	}
 
 	#[test]
+	fn test_0xa9_lda_zero_flag() {
+		let mut cpu = CPU::new();
+
+		let test_binary = vec![0xA9, 0x00, 0x00];
+		cpu.load_and_run(test_binary);
+
+		// Z flag set
+		assert!(cpu.status & 0b0000_0010 == 0b10);
+	}
+
+	#[test]
 	fn test_0xaa_tax_move_a_to_x() {
 		let mut cpu = CPU::new();
 
@@ -266,6 +266,17 @@ mod test {
 		cpu.load_and_run(test_binary);
 
 		assert_eq!(cpu.register_x, 10);
+	}
+
+	#[test]
+	fn test_0xad_lda_from_memory() {
+		let mut cpu = CPU::new();
+		cpu.mem_write(0x0102, 0xFF);
+
+		let test_binary = vec![0xAD, 0x02, 0x01, 0x00];
+		cpu.load_and_run(test_binary);
+
+		assert_eq!(cpu.register_a, 0xFF);
 	}
 
 	#[test]
