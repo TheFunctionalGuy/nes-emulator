@@ -247,6 +247,35 @@ impl CPU {
 		self.mem_write(addr, self.register_y);
 	}
 
+	// * Status Register Instructions
+	fn clc(&mut self) {
+		todo!();
+	}
+
+	fn cld(&mut self) {
+		todo!();
+	}
+
+	fn cli(&mut self) {
+		todo!();
+	}
+
+	fn clv(&mut self) {
+		todo!();
+	}
+
+	fn sec(&mut self) {
+		todo!();
+	}
+
+	fn sed(&mut self) {
+		todo!();
+	}
+
+	fn sei(&mut self) {
+		todo!();
+	}
+
 	// * Helper function for instruction
 	fn update_zero_and_negative_flags(&mut self, result: u8) {
 		if result == 0 {
@@ -283,6 +312,8 @@ impl CPU {
 				0x88 => self.dey(),
 				0xC8 => self.iny(),
 				0x00 => return,
+
+				// * Load Instructions
 				// * LDA
 				0xA9 | 0xA5 | 0xB5 | 0xAD | 0xBD | 0xB9 | 0xA1 | 0xB1 => {
 					self.lda(&operation.addressing_mode);
@@ -295,6 +326,8 @@ impl CPU {
 				0xA0 | 0xA4 | 0xB4 | 0xAC | 0xBC => {
 					self.ldy(&operation.addressing_mode);
 				}
+
+				// * Store Instructions
 				// * STA
 				0x85 | 0x95 | 0x8D | 0x9D | 0x99 | 0x81 | 0x91 => {
 					self.sta(&operation.addressing_mode);
@@ -307,6 +340,17 @@ impl CPU {
 				0x84 | 0x94 | 0x8C => {
 					self.sty(&operation.addressing_mode);
 				}
+
+				// * Status Register Instructions
+				0x18 => self.clc(),
+				0xD8 => self.cld(),
+				0x58 => self.cli(),
+				0xB8 => self.clv(),
+				0x38 => self.sec(),
+				0xF8 => self.sed(),
+				0x78 => self.sei(),
+
+				// * Error case
 				_ => todo!("Operation with opcode 0x{:02x} not yet implemented", code),
 			}
 
