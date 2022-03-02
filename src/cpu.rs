@@ -32,8 +32,11 @@ impl CPU {
 		self.memory[addr as usize]
 	}
 
-	// TODO: Refactor to use from_le_bytes()
 	fn mem_read_u16(&mut self, addr: u16) -> u16 {
+		// * Alternative implementation
+		// u16::from_le_bytes([self.mem_read(addr), self.mem_read(addr + 1)])
+
+		// * Reference implementation
 		let lo = self.mem_read(addr) as u16;
 		let hi = self.mem_read(addr + 1) as u16;
 
@@ -44,8 +47,12 @@ impl CPU {
 		self.memory[addr as usize] = data;
 	}
 
-	// TODO: Refactor to use to_le_bytes()
 	fn mem_write_u16(&mut self, addr: u16, data: u16) {
+		// * Alternative implementation
+		// self.mem_write(addr, data.to_le_bytes()[0]);
+		// self.mem_write(addr + 1, data.to_le_bytes()[1]);
+
+		// * Reference implementation
 		let hi = (data >> 8) as u8;
 		let lo = (data & 0xFF) as u8;
 
