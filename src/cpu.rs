@@ -222,6 +222,16 @@ impl CPU {
 		self.update_zero_and_negative_flags(self.register_a);
 	}
 
+	fn dey(&mut self) {
+		self.register_y = self.register_y.wrapping_sub(1);
+		self.update_zero_and_negative_flags(self.register_y);
+	}
+
+	fn iny(&mut self) {
+		self.register_y = self.register_y.wrapping_add(1);
+		self.update_zero_and_negative_flags(self.register_y);
+	}
+
 	// * Helper function for instruction
 	fn update_zero_and_negative_flags(&mut self, result: u8) {
 		if result == 0 {
@@ -270,6 +280,8 @@ impl CPU {
 				0xE8 => self.inx(),
 				0xA8 => self.tay(),
 				0x98 => self.tya(),
+				0x88 => self.dey(),
+				0xC8 => self.iny(),
 				0x00 => return,
 				_ => todo!("Operation with opcode 0x{:02x} not yet implemented", code),
 			}
@@ -393,8 +405,8 @@ mod test {
 		let mut cpu = CPU::new();
 
 		/* Disassembly:
-		0000   A9 0A                LDA #$0A
-		0002   A8                   TAY
+		0000   A0 0A                LDY #$0A
+		0002   98                   TYA
 		0003   00                   BRK */
 		let binary = vec![0xA0, 0x0A, 0x98, 0x00];
 		cpu.load_and_run(binary);
@@ -478,11 +490,10 @@ mod test {
 		let mut cpu = CPU::new();
 
 		/* Disassembly:
-		0000   A9 FF                LDA #$FF
-		0002   AA                   TAX
-		0003   E8                   INX
-		0004   E8                   INX
-		0005   00                   BRK */
+		0000   A2 01                LDX #$01
+		0002   CA                   DEX
+		0003   CA                   DEX
+		0004   00                   BRK */
 		let binary = vec![0xA2, 0x01, 0xCA, 0xCA, 0x00];
 		cpu.load_and_run(binary);
 
@@ -503,6 +514,36 @@ mod test {
 		cpu.load_and_run(binary);
 
 		assert_eq!(cpu.register_x, 1);
+	}
+
+	#[test]
+	fn test_0x88_dey_underflow() {
+		let mut cpu = CPU::new();
+
+		/* Disassembly:
+		0000   A0 01                LDY #$01
+		0002   88                   DEY
+		0003   88                   DEY
+		0004   00                   BRK */
+		let binary = vec![0xA0, 0x01, 0x88, 0x88, 0x00];
+		cpu.load_and_run(binary);
+
+		assert_eq!(cpu.register_y, 0xFF);
+	}
+
+	#[test]
+	fn test_0xc8_iny_overflow() {
+		let mut cpu = CPU::new();
+
+		/* Disassembly:
+		0000   A0 FF                LDY #$FF
+		0002   C8                   INY
+		0003   C8                   INY
+		0004   00                   BRK */
+		let binary = vec![0xA0, 0xFF, 0xC8, 0xC8, 0x00];
+		cpu.load_and_run(binary);
+
+		assert_eq!(cpu.register_y, 1);
 	}
 
 	#[test]
