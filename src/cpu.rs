@@ -159,6 +159,12 @@ impl CPU {
 		self.update_zero_and_negative_flags(self.register_a);
 	}
 
+	fn sta(&mut self, mode: &AddressingMode) {
+		let addr = self.get_operand_address(mode);
+
+		self.mem_write(addr, self.register_a);
+	}
+
 	fn tax(&mut self) {
 		self.register_x = self.register_a;
 		self.update_zero_and_negative_flags(self.register_x);
@@ -189,6 +195,16 @@ impl CPU {
 			self.program_counter += 1;
 
 			match opcode {
+				// STA Zero Page (0x85)
+				0x85 => {
+					self.sta(&AddressingMode::ZeroPage);
+					self.program_counter += 1;
+				}
+				// STA Zero Page X (0x95)
+				0x95 => {
+					self.sta(&AddressingMode::ZeroPage_X);
+					self.program_counter += 1;
+				}
 				// LDA Zero Page (0xA5)
 				0xA5 => {
 					self.lda(&AddressingMode::ZeroPage);
@@ -223,9 +239,42 @@ mod test {
 	use super::*;
 
 	#[test]
+	fn test_0x85_sta_to_memory() {
+		let mut cpu = CPU::new();
+
+		/* Disassembly:
+		0000   A9 20                LDA #$20
+		0002   85 01                STA $01
+		0004   00                   BRK */
+		let binary = vec![0xA9, 0x20, 0x85, 0x01, 0x00];
+		cpu.load_and_run(binary);
+
+		assert_eq!(cpu.memory[0x01], 0x20);
+	}
+
+	#[test]
+	fn test_0x95_sta_to_memory() {
+		let mut cpu = CPU::new();
+
+		/* Disassembly:
+		0000   A9 20                LDA #$20
+		0002   AA                   TAX
+		0003   A9 40                LDA #$40
+		0005   95 01                STA $01,X
+		0007   00                   BRK */
+		let binary = vec![0xA9, 0x20, 0xAA, 0xA9, 0x40, 0x95, 0x01, 0x00];
+		cpu.load_and_run(binary);
+
+		assert_eq!(cpu.memory[0x21], 0x40);
+	}
+
+	#[test]
 	fn test_0xa9_lda_immediate_load_data() {
 		let mut cpu = CPU::new();
 
+		/* Disassembly:
+		0000   A9 05                LDA #$05
+		0002   00                   BRK */
 		let binary = vec![0xA9, 0x05, 0x00];
 		cpu.load_and_run(binary);
 
@@ -241,6 +290,9 @@ mod test {
 		let mut cpu = CPU::new();
 		cpu.mem_write(0x10, 0x55);
 
+		/* Disassembly:
+		0000   A5 10                LDA $10
+		0002   00                   BRK */
 		let binary = vec![0xA5, 0x10, 0x00];
 		cpu.load_and_run(binary);
 
@@ -251,6 +303,9 @@ mod test {
 	fn test_0xa9_lda_zero_flag() {
 		let mut cpu = CPU::new();
 
+		/* Disassembly:
+		0000   A9 00                LDA #$00
+		0002   00                   BRK */
 		let binary = vec![0xA9, 0x00, 0x00];
 		cpu.load_and_run(binary);
 
@@ -262,10 +317,14 @@ mod test {
 	fn test_0xaa_tax_move_a_to_x() {
 		let mut cpu = CPU::new();
 
+		/* Disassembly:
+		0000   A9 0A                LDA #$0A
+		0002   AA                   TAX
+		0003   00                   BRK */
 		let binary = vec![0xA9, 0x0A, 0xAA, 0x00];
 		cpu.load_and_run(binary);
 
-		assert_eq!(cpu.register_x, 10);
+		assert_eq!(cpu.register_x, 0x0A);
 	}
 
 	#[test]
@@ -273,6 +332,9 @@ mod test {
 		let mut cpu = CPU::new();
 		cpu.mem_write(0x0102, 0xFF);
 
+		/* Disassembly:
+		0000   AD 02 01             LDA $0102
+		0003   00                   BRK */
 		let binary = vec![0xAD, 0x02, 0x01, 0x00];
 		cpu.load_and_run(binary);
 
@@ -283,6 +345,12 @@ mod test {
 	fn test_inx_overflow() {
 		let mut cpu = CPU::new();
 
+		/* Disassembly:
+		0000   A9 FF                LDA #$FF
+		0002   AA                   TAX
+		0003   E8                   INX
+		0004   E8                   INX
+		0005   00                   BRK */
 		let binary = vec![0xA9, 0xFF, 0xAA, 0xE8, 0xE8, 0x00];
 		cpu.load_and_run(binary);
 
@@ -293,6 +361,11 @@ mod test {
 	fn test_5_ops_working_together() {
 		let mut cpu = CPU::new();
 
+		/* Disassembly:
+		0000   A9 C0                LDA #$C0
+		0002   AA                   TAX
+		0003   E8                   INX
+		0004   00                   BRK */
 		let binary = vec![0xA9, 0xC0, 0xAA, 0xE8, 0x00];
 		cpu.load_and_run(binary);
 
