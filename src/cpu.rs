@@ -192,6 +192,18 @@ impl CPU {
 		self.mem_write(addr, self.register_a);
 	}
 
+	fn stx(&mut self, mode: &AddressingMode) {
+		let addr = self.get_operand_address(mode);
+
+		self.mem_write(addr, self.register_x);
+	}
+
+	fn sty(&mut self, mode: &AddressingMode) {
+		let addr = self.get_operand_address(mode);
+
+		self.mem_write(addr, self.register_y);
+	}
+
 	fn tax(&mut self) {
 		self.register_x = self.register_a;
 		self.update_zero_and_negative_flags(self.register_x);
@@ -262,6 +274,14 @@ impl CPU {
 				0x85 | 0x95 | 0x8D | 0x9D | 0x99 | 0x81 | 0x91 => {
 					self.sta(&operation.addressing_mode);
 				}
+				// * STX
+				0x86 | 0x96 | 0x8E => {
+					self.stx(&operation.addressing_mode);
+				}
+				// * STY
+				0x84 | 0x94 | 0x8C => {
+					self.sty(&operation.addressing_mode);
+				}
 				// * LDA
 				0xA9 | 0xA5 | 0xB5 | 0xAD | 0xBD | 0xB9 | 0xA1 | 0xB1 => {
 					self.lda(&operation.addressing_mode);
@@ -293,6 +313,7 @@ impl CPU {
 	}
 }
 
+// TODO: Reorder tests
 #[cfg(test)]
 mod test {
 	use super::*;
