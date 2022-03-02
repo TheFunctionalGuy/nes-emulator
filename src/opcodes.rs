@@ -36,8 +36,8 @@ lazy_static! {
 		OpCode::new(0x8A, "TXA", 1, 2, AddressingMode::NoneAddressing),
 		OpCode::new(0xCA, "DEX", 1, 2, AddressingMode::NoneAddressing),
 		OpCode::new(0xE8, "INX", 1, 2, AddressingMode::NoneAddressing),
-		OpCode::new(0xA8, "TAY", 1, 2, AddressingMode::NoneAddressing), // ! Untested
-		OpCode::new(0x98, "TYA", 1, 2, AddressingMode::NoneAddressing), // ! Untested
+		OpCode::new(0xA8, "TAY", 1, 2, AddressingMode::NoneAddressing),
+		OpCode::new(0x98, "TYA", 1, 2, AddressingMode::NoneAddressing),
 		OpCode::new(0x88, "DEY", 1, 2, AddressingMode::NoneAddressing), // ! Untested
 		OpCode::new(0xC8, "INY", 1, 2, AddressingMode::NoneAddressing), // ! Untested
 		// * STA

@@ -212,6 +212,16 @@ impl CPU {
 		self.update_zero_and_negative_flags(self.register_x);
 	}
 
+	fn tay(&mut self) {
+		self.register_y = self.register_a;
+		self.update_zero_and_negative_flags(self.register_y);
+	}
+
+	fn tya(&mut self) {
+		self.register_a = self.register_y;
+		self.update_zero_and_negative_flags(self.register_a);
+	}
+
 	// * Helper function for instruction
 	fn update_zero_and_negative_flags(&mut self, result: u8) {
 		if result == 0 {
@@ -258,6 +268,8 @@ impl CPU {
 				0x8A => self.txa(),
 				0xCA => self.dex(),
 				0xE8 => self.inx(),
+				0xA8 => self.tay(),
+				0x98 => self.tya(),
 				0x00 => return,
 				_ => todo!("Operation with opcode 0x{:02x} not yet implemented", code),
 			}
@@ -377,6 +389,34 @@ mod test {
 	}
 
 	#[test]
+	fn test_0x98_tya_move_y_to_a() {
+		let mut cpu = CPU::new();
+
+		/* Disassembly:
+		0000   A9 0A                LDA #$0A
+		0002   A8                   TAY
+		0003   00                   BRK */
+		let binary = vec![0xA0, 0x0A, 0x98, 0x00];
+		cpu.load_and_run(binary);
+
+		assert_eq!(cpu.register_a, 0x0A);
+	}
+
+	#[test]
+	fn test_0xa8_tay_move_a_to_x() {
+		let mut cpu = CPU::new();
+
+		/* Disassembly:
+		0000   A9 0A                LDA #$0A
+		0002   A8                   TAY
+		0003   00                   BRK */
+		let binary = vec![0xA9, 0x0A, 0xA8, 0x00];
+		cpu.load_and_run(binary);
+
+		assert_eq!(cpu.register_y, 0x0A);
+	}
+
+	#[test]
 	fn test_0xa6_ldx_zero_page() {
 		let mut cpu = CPU::new();
 		cpu.mem_write(0x00AF, 0x1F);
@@ -450,7 +490,7 @@ mod test {
 	}
 
 	#[test]
-	fn test_inx_overflow() {
+	fn test_0xe8_inx_overflow() {
 		let mut cpu = CPU::new();
 
 		/* Disassembly:
