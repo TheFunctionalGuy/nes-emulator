@@ -10,9 +10,25 @@ const ZERO_FLAG_INV: u8 = 0b1111_1101;
 pub struct CPU {
 	pub register_a: u8,
 	pub register_x: u8,
+	pub register_y: u8,
 	pub status: u8,
 	pub program_counter: u16,
 	memory: [u8; 0xFFFF],
+}
+
+#[derive(Debug)]
+#[allow(non_camel_case_types)]
+pub enum AddressingMode {
+	Immediate,
+	ZeroPage,
+	ZeroPage_X,
+	ZeroPage_Y,
+	Absolute,
+	Absolute_X,
+	Absolute_Y,
+	Indirect_X,
+	Indirect_Y,
+	NoneAddressing,
 }
 
 impl CPU {
@@ -20,6 +36,7 @@ impl CPU {
 		CPU {
 			register_a: 0,
 			register_x: 0,
+			register_y: 0,
 			status: 0,
 			program_counter: 0,
 			memory: [0; 0xFFFF],
@@ -32,7 +49,7 @@ impl CPU {
 		self.memory[addr as usize]
 	}
 
-	fn mem_read_u16(&mut self, addr: u16) -> u16 {
+	fn mem_read_u16(&self, addr: u16) -> u16 {
 		// * Alternative implementation
 		// u16::from_le_bytes([self.mem_read(addr), self.mem_read(addr + 1)])
 
@@ -70,6 +87,7 @@ impl CPU {
 		// Reset all registers
 		self.register_a = 0;
 		self.register_x = 0;
+		self.register_y = 0;
 		self.status = 0;
 
 		// Initialize program counter to 2-byte value at 0xFFFC
@@ -82,8 +100,61 @@ impl CPU {
 		self.run();
 	}
 
+	fn get_operand_address(&self, mode: &AddressingMode) -> u16 {
+		match mode {
+			// * Immediate
+			AddressingMode::Immediate => self.program_counter,
+
+			// * Zero Page (1-byte address)
+			AddressingMode::ZeroPage => self.mem_read(self.program_counter) as u16,
+			AddressingMode::ZeroPage_X => {
+				let base = self.mem_read(self.program_counter);
+
+				// Offset 1-byte base address by adding value of register X
+				base.wrapping_add(self.register_x) as u16
+			}
+			AddressingMode::ZeroPage_Y => {
+				let base = self.mem_read(self.program_counter);
+
+				// Offset 1-byte base address by adding value of register Y
+				base.wrapping_add(self.register_y) as u16
+			}
+
+			// * Absolute (2-byte address)
+			AddressingMode::Absolute => self.mem_read_u16(self.program_counter),
+			AddressingMode::Absolute_X => {
+				let base = self.mem_read_u16(self.program_counter);
+
+				// Offset 2-byte base address by adding value of register X
+				base.wrapping_add(self.register_x as u16)
+			}
+			AddressingMode::Absolute_Y => {
+				let base = self.mem_read_u16(self.program_counter);
+
+				// Offset 2-byte base address by adding value of register Y
+				base.wrapping_add(self.register_y as u16)
+			}
+
+			// * Indirect
+			AddressingMode::Indirect_X => {
+				todo!("Indirect_X addressing not yet implemented!");
+			}
+			AddressingMode::Indirect_Y => {
+				todo!("Indirect_Y addressing not yet implemented!");
+			}
+
+			// * Not supported
+			AddressingMode::NoneAddressing => {
+				panic!("mode {:?} is not supported", mode);
+			}
+		}
+	}
+
 	// Instructions
-	fn lda(&mut self, value: u8) {
+	fn lda(&mut self, mode: &AddressingMode) {
+		let addr = self.get_operand_address(mode);
+		let value = self.mem_read(addr);
+
 		self.register_a = value;
 		self.update_zero_and_negative_flags(self.register_a);
 	}
@@ -118,12 +189,20 @@ impl CPU {
 			self.program_counter += 1;
 
 			match opcode {
-				// LDA (0xA9)
-				0xA9 => {
-					let param = self.mem_read(self.program_counter);
+				// LDA Zero Page (0xA5)
+				0xA5 => {
+					self.lda(&AddressingMode::ZeroPage);
 					self.program_counter += 1;
-
-					self.lda(param);
+				}
+				// LDA Immediate (0xA9)
+				0xA9 => {
+					self.lda(&AddressingMode::Immediate);
+					self.program_counter += 1;
+				}
+				// LDA Absolute (0xAD)
+				0xAD => {
+					self.lda(&AddressingMode::Absolute);
+					self.program_counter += 2;
 				}
 				// TAX (0xAA)
 				0xAA => self.tax(),
@@ -166,6 +245,17 @@ mod test {
 
 		// Z flag set
 		assert!(cpu.status & 0b0000_0010 == 0b10);
+	}
+
+	#[test]
+	fn test_0xa5_lda_from_memory() {
+		let mut cpu = CPU::new();
+		cpu.mem_write(0x10, 0x55);
+
+		let test_binary = vec![0xA5, 0x10, 0x00];
+		cpu.load_and_run(test_binary);
+
+		assert_eq!(cpu.register_a, 0x55);
 	}
 
 	#[test]
