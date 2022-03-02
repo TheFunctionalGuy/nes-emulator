@@ -313,10 +313,127 @@ impl CPU {
 	}
 }
 
-// TODO: Reorder tests
+// TODO: Think about flags
 #[cfg(test)]
 mod test {
 	use super::*;
+
+	#[test]
+	fn test_0xaa_tax_move_a_to_x() {
+		let mut cpu = CPU::new();
+
+		/* Disassembly:
+		0000   A9 0A                LDA #$0A
+		0002   AA                   TAX
+		0003   00                   BRK */
+		let binary = vec![0xA9, 0x0A, 0xAA, 0x00];
+		cpu.load_and_run(binary);
+
+		assert_eq!(cpu.register_x, 0x0A);
+	}
+
+	#[test]
+	fn test_0x8a_txa_move_x_to_a() {
+		let mut cpu = CPU::new();
+
+		/* Disassembly:
+		0000   A2 0A                LDX #$0A
+		0002   8A                   TXA
+		0003   00                   BRK */
+		let binary = vec![0xA2, 0x0A, 0x8A, 0x00];
+		cpu.load_and_run(binary);
+
+		assert_eq!(cpu.register_a, 0x0A);
+	}
+
+	#[test]
+	fn test_0xca_dex_underflow() {
+		let mut cpu = CPU::new();
+
+		/* Disassembly:
+		0000   A2 01                LDX #$01
+		0002   CA                   DEX
+		0003   CA                   DEX
+		0004   00                   BRK */
+		let binary = vec![0xA2, 0x01, 0xCA, 0xCA, 0x00];
+		cpu.load_and_run(binary);
+
+		assert_eq!(cpu.register_x, 0xFF);
+	}
+
+	#[test]
+	fn test_0xe8_inx_overflow() {
+		let mut cpu = CPU::new();
+
+		/* Disassembly:
+		0000   A9 FF                LDA #$FF
+		0002   AA                   TAX
+		0003   E8                   INX
+		0004   E8                   INX
+		0005   00                   BRK */
+		let binary = vec![0xA9, 0xFF, 0xAA, 0xE8, 0xE8, 0x00];
+		cpu.load_and_run(binary);
+
+		assert_eq!(cpu.register_x, 0x01);
+	}
+
+	#[test]
+	fn test_0xa8_tay_move_a_to_y() {
+		let mut cpu = CPU::new();
+
+		/* Disassembly:
+		0000   A9 0A                LDA #$0A
+		0002   A8                   TAY
+		0003   00                   BRK */
+		let binary = vec![0xA9, 0x0A, 0xA8, 0x00];
+		cpu.load_and_run(binary);
+
+		assert_eq!(cpu.register_y, 0x0A);
+	}
+
+	#[test]
+	fn test_0x98_tya_move_y_to_a() {
+		let mut cpu = CPU::new();
+
+		/* Disassembly:
+		0000   A0 0A                LDY #$0A
+		0002   98                   TYA
+		0003   00                   BRK */
+		let binary = vec![0xA0, 0x0A, 0x98, 0x00];
+		cpu.load_and_run(binary);
+
+		assert_eq!(cpu.register_a, 0x0A);
+	}
+
+	#[test]
+	fn test_0x88_dey_underflow() {
+		let mut cpu = CPU::new();
+
+		/* Disassembly:
+		0000   A0 01                LDY #$01
+		0002   88                   DEY
+		0003   88                   DEY
+		0004   00                   BRK */
+		let binary = vec![0xA0, 0x01, 0x88, 0x88, 0x00];
+		cpu.load_and_run(binary);
+
+		assert_eq!(cpu.register_y, 0xFF);
+	}
+
+	#[test]
+	fn test_0xc8_iny_overflow() {
+		let mut cpu = CPU::new();
+
+		/* Disassembly:
+		0000   A0 FF                LDY #$FF
+		0002   C8                   INY
+		0003   C8                   INY
+		0004   00                   BRK */
+		let binary = vec![0xA0, 0xFF, 0xC8, 0xC8, 0x00];
+		cpu.load_and_run(binary);
+
+		assert_eq!(cpu.register_y, 0x01);
+	}
 
 	#[test]
 	fn test_0x85_sta_zero_page() {
@@ -352,6 +469,11 @@ mod test {
 	fn test_0x99_sta_absolute_y() {
 		let mut cpu = CPU::new();
 
+		/* Disassembly:
+		0000   A0 F1                LDY #$F1
+		0002   98                   TYA
+		0003   99 34 12             STA $1234,Y
+		0006   00                   BRK */
 		let binary = vec![0xA0, 0xF1, 0x98, 0x99, 0x34, 0x12, 0x00];
 		cpu.load_and_run(binary);
 
@@ -359,7 +481,17 @@ mod test {
 	}
 
 	#[test]
-	fn test_0xa9_lda_immediate() {
+	fn test_0x86_stx_zero_page() {
+		assert!(false);
+	}
+
+	#[test]
+	fn test_0x84_sty_zero_page() {
+		assert!(false);
+	}
+
+	#[test]
+	fn test_0xa9_lda_immediate_flags() {
 		let mut cpu = CPU::new();
 
 		/* Disassembly:
@@ -373,20 +505,6 @@ mod test {
 		assert!(cpu.status & 0b0000_0010 == 0b00);
 		// N flag unset
 		assert!(cpu.status & 0b1000_0000 == 0);
-	}
-
-	#[test]
-	fn test_0xa5_lda_zero_page() {
-		let mut cpu = CPU::new();
-		cpu.mem_write(0x10, 0x55);
-
-		/* Disassembly:
-		0000   A5 10                LDA $10
-		0002   00                   BRK */
-		let binary = vec![0xA5, 0x10, 0x00];
-		cpu.load_and_run(binary);
-
-		assert_eq!(cpu.register_a, 0x55);
 	}
 
 	#[test]
@@ -404,59 +522,17 @@ mod test {
 	}
 
 	#[test]
-	fn test_0xaa_tax_move_a_to_x() {
+	fn test_0xa5_lda_zero_page() {
 		let mut cpu = CPU::new();
+		cpu.mem_write(0x10, 0x55);
 
 		/* Disassembly:
-		0000   A9 0A                LDA #$0A
-		0002   AA                   TAX
-		0003   00                   BRK */
-		let binary = vec![0xA9, 0x0A, 0xAA, 0x00];
+		0000   A5 10                LDA $10
+		0002   00                   BRK */
+		let binary = vec![0xA5, 0x10, 0x00];
 		cpu.load_and_run(binary);
 
-		assert_eq!(cpu.register_x, 0x0A);
-	}
-
-	#[test]
-	fn test_0x8a_txa_move_x_to_a() {
-		let mut cpu = CPU::new();
-
-		/* Disassembly:
-		0000   A2 0A                LDX #$0A
-		0002   8A                   TXA
-		0003   00                   BRK */
-		let binary = vec![0xA2, 0x0A, 0x8A, 0x00];
-		cpu.load_and_run(binary);
-
-		assert_eq!(cpu.register_a, 0x0A);
-	}
-
-	#[test]
-	fn test_0x98_tya_move_y_to_a() {
-		let mut cpu = CPU::new();
-
-		/* Disassembly:
-		0000   A0 0A                LDY #$0A
-		0002   98                   TYA
-		0003   00                   BRK */
-		let binary = vec![0xA0, 0x0A, 0x98, 0x00];
-		cpu.load_and_run(binary);
-
-		assert_eq!(cpu.register_a, 0x0A);
-	}
-
-	#[test]
-	fn test_0xa8_tay_move_a_to_x() {
-		let mut cpu = CPU::new();
-
-		/* Disassembly:
-		0000   A9 0A                LDA #$0A
-		0002   A8                   TAY
-		0003   00                   BRK */
-		let binary = vec![0xA9, 0x0A, 0xA8, 0x00];
-		cpu.load_and_run(binary);
-
-		assert_eq!(cpu.register_y, 0x0A);
+		assert_eq!(cpu.register_a, 0x55);
 	}
 
 	#[test]
@@ -515,67 +591,6 @@ mod test {
 		cpu.load_and_run(binary);
 
 		assert_eq!(cpu.register_y, 0x05);
-	}
-
-	#[test]
-	fn test_0xca_dex_underflow() {
-		let mut cpu = CPU::new();
-
-		/* Disassembly:
-		0000   A2 01                LDX #$01
-		0002   CA                   DEX
-		0003   CA                   DEX
-		0004   00                   BRK */
-		let binary = vec![0xA2, 0x01, 0xCA, 0xCA, 0x00];
-		cpu.load_and_run(binary);
-
-		assert_eq!(cpu.register_x, 0xFF);
-	}
-
-	#[test]
-	fn test_0xe8_inx_overflow() {
-		let mut cpu = CPU::new();
-
-		/* Disassembly:
-		0000   A9 FF                LDA #$FF
-		0002   AA                   TAX
-		0003   E8                   INX
-		0004   E8                   INX
-		0005   00                   BRK */
-		let binary = vec![0xA9, 0xFF, 0xAA, 0xE8, 0xE8, 0x00];
-		cpu.load_and_run(binary);
-
-		assert_eq!(cpu.register_x, 0x01);
-	}
-
-	#[test]
-	fn test_0x88_dey_underflow() {
-		let mut cpu = CPU::new();
-
-		/* Disassembly:
-		0000   A0 01                LDY #$01
-		0002   88                   DEY
-		0003   88                   DEY
-		0004   00                   BRK */
-		let binary = vec![0xA0, 0x01, 0x88, 0x88, 0x00];
-		cpu.load_and_run(binary);
-
-		assert_eq!(cpu.register_y, 0xFF);
-	}
-
-	#[test]
-	fn test_0xc8_iny_overflow() {
-		let mut cpu = CPU::new();
-
-		/* Disassembly:
-		0000   A0 FF                LDY #$FF
-		0002   C8                   INY
-		0003   C8                   INY
-		0004   00                   BRK */
-		let binary = vec![0xA0, 0xFF, 0xC8, 0xC8, 0x00];
-		cpu.load_and_run(binary);
-
-		assert_eq!(cpu.register_y, 0x01);
 	}
 
 	#[test]
