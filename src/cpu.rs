@@ -261,9 +261,8 @@ impl CPU {
 mod test {
 	use super::*;
 
-	// TODO: Rename tests
 	#[test]
-	fn test_0x85_sta_to_memory() {
+	fn test_0x85_sta_zero_page() {
 		let mut cpu = CPU::new();
 
 		/* Disassembly:
@@ -277,7 +276,7 @@ mod test {
 	}
 
 	#[test]
-	fn test_0x95_sta_to_memory() {
+	fn test_0x95_sta_zero_page_x() {
 		let mut cpu = CPU::new();
 
 		/* Disassembly:
@@ -293,7 +292,7 @@ mod test {
 	}
 
 	#[test]
-	fn test_0xa9_lda_immediate_load_data() {
+	fn test_0xa9_lda_immediate() {
 		let mut cpu = CPU::new();
 
 		/* Disassembly:
@@ -310,7 +309,7 @@ mod test {
 	}
 
 	#[test]
-	fn test_0xa5_lda_from_memory() {
+	fn test_0xa5_lda_zero_page() {
 		let mut cpu = CPU::new();
 		cpu.mem_write(0x10, 0x55);
 
@@ -352,7 +351,7 @@ mod test {
 	}
 
 	#[test]
-	fn test_0xa6_ldx_from_memory() {
+	fn test_0xa6_ldx_zero_page() {
 		let mut cpu = CPU::new();
 		cpu.mem_write(0x00AF, 0x1F);
 
@@ -398,6 +397,10 @@ mod test {
 		let mut cpu = CPU::new();
 		cpu.mem_write(0x4157, 0x05);
 
+		/* Disassembly:
+		0000   A2 15                LDX #$15
+		0002   BC 42 41             LDY $4142,X
+		0005   00                   BRK */
 		let binary = vec![0xA2, 0x15, 0xBC, 0x42, 0x41, 0x00];
 		cpu.load_and_run(binary);
 
