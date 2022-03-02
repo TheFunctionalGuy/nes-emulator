@@ -328,6 +328,16 @@ mod test {
 	}
 
 	#[test]
+	fn test_0x99_sta_absolute_y() {
+		let mut cpu = CPU::new();
+
+		let binary = vec![0xA0, 0xF1, 0x98, 0x99, 0x34, 0x12, 0x00];
+		cpu.load_and_run(binary);
+
+		assert_eq!(cpu.memory[0x1325], 0xF1);
+	}
+
+	#[test]
 	fn test_0xa9_lda_immediate() {
 		let mut cpu = CPU::new();
 

@@ -45,7 +45,7 @@ lazy_static! {
 		OpCode::new(0x95, "STA", 2, 4, AddressingMode::ZeroPage_X),
 		OpCode::new(0x8D, "STA", 3, 4, AddressingMode::Absolute),
 		OpCode::new(0x9D, "STA", 3, 5, AddressingMode::Absolute_X),
-		OpCode::new(0x99, "STA", 3, 5, AddressingMode::Absolute_Y),         // ! Untested
+		OpCode::new(0x99, "STA", 3, 5, AddressingMode::Absolute_Y),
 		OpCode::new(0x81, "STA", 2, 6, AddressingMode::Indirect_X),         // ! Untested
 		OpCode::new(0x91, "STA", 2, 6, AddressingMode::Indirect_Y),         // ! Untested
 		// * LDA
@@ -54,7 +54,7 @@ lazy_static! {
 		OpCode::new(0xB5, "LDA", 2, 4, AddressingMode::ZeroPage_X),
 		OpCode::new(0xAD, "LDA", 3, 4, AddressingMode::Absolute),
 		OpCode::new(0xBD, "LDA", 3, 4 /*+1*/, AddressingMode::Absolute_X),
-		OpCode::new(0xB9, "LDA", 3, 4 /*+1*/, AddressingMode::Absolute_Y),  // ! Untested
+		OpCode::new(0xB9, "LDA", 3, 4 /*+1*/, AddressingMode::Absolute_Y),
 		OpCode::new(0xA1, "LDA", 2, 6, AddressingMode::Indirect_X),         // ! Untested
 		OpCode::new(0xB1, "LDA", 2, 5 /*+1*/, AddressingMode::Indirect_Y),  // ! Untested
 		// * LDX
