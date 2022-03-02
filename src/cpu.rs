@@ -162,48 +162,7 @@ impl CPU {
 	}
 
 	// * Instructions
-	fn lda(&mut self, mode: &AddressingMode) {
-		let addr = self.get_operand_address(mode);
-		let value = self.mem_read(addr);
-
-		self.register_a = value;
-		self.update_zero_and_negative_flags(self.register_a);
-	}
-
-	fn ldx(&mut self, mode: &AddressingMode) {
-		let addr = self.get_operand_address(mode);
-		let value = self.mem_read(addr);
-
-		self.register_x = value;
-		self.update_zero_and_negative_flags(self.register_x);
-	}
-
-	fn ldy(&mut self, mode: &AddressingMode) {
-		let addr = self.get_operand_address(mode);
-		let value = self.mem_read(addr);
-
-		self.register_y = value;
-		self.update_zero_and_negative_flags(self.register_y);
-	}
-
-	fn sta(&mut self, mode: &AddressingMode) {
-		let addr = self.get_operand_address(mode);
-
-		self.mem_write(addr, self.register_a);
-	}
-
-	fn stx(&mut self, mode: &AddressingMode) {
-		let addr = self.get_operand_address(mode);
-
-		self.mem_write(addr, self.register_x);
-	}
-
-	fn sty(&mut self, mode: &AddressingMode) {
-		let addr = self.get_operand_address(mode);
-
-		self.mem_write(addr, self.register_y);
-	}
-
+	// * None Addressing Instructions
 	fn tax(&mut self) {
 		self.register_x = self.register_a;
 		self.update_zero_and_negative_flags(self.register_x);
@@ -244,6 +203,50 @@ impl CPU {
 		self.update_zero_and_negative_flags(self.register_y);
 	}
 
+	// * Load Instructions
+	fn lda(&mut self, mode: &AddressingMode) {
+		let addr = self.get_operand_address(mode);
+		let value = self.mem_read(addr);
+
+		self.register_a = value;
+		self.update_zero_and_negative_flags(self.register_a);
+	}
+
+	fn ldx(&mut self, mode: &AddressingMode) {
+		let addr = self.get_operand_address(mode);
+		let value = self.mem_read(addr);
+
+		self.register_x = value;
+		self.update_zero_and_negative_flags(self.register_x);
+	}
+
+	fn ldy(&mut self, mode: &AddressingMode) {
+		let addr = self.get_operand_address(mode);
+		let value = self.mem_read(addr);
+
+		self.register_y = value;
+		self.update_zero_and_negative_flags(self.register_y);
+	}
+
+	// * Store Instructions
+	fn sta(&mut self, mode: &AddressingMode) {
+		let addr = self.get_operand_address(mode);
+
+		self.mem_write(addr, self.register_a);
+	}
+
+	fn stx(&mut self, mode: &AddressingMode) {
+		let addr = self.get_operand_address(mode);
+
+		self.mem_write(addr, self.register_x);
+	}
+
+	fn sty(&mut self, mode: &AddressingMode) {
+		let addr = self.get_operand_address(mode);
+
+		self.mem_write(addr, self.register_y);
+	}
+
 	// * Helper function for instruction
 	fn update_zero_and_negative_flags(&mut self, result: u8) {
 		if result == 0 {
@@ -270,18 +273,16 @@ impl CPU {
 			self.program_counter += 1;
 
 			match code {
-				// * STA
-				0x85 | 0x95 | 0x8D | 0x9D | 0x99 | 0x81 | 0x91 => {
-					self.sta(&operation.addressing_mode);
-				}
-				// * STX
-				0x86 | 0x96 | 0x8E => {
-					self.stx(&operation.addressing_mode);
-				}
-				// * STY
-				0x84 | 0x94 | 0x8C => {
-					self.sty(&operation.addressing_mode);
-				}
+				// * None Addressing Instructions
+				0xAA => self.tax(),
+				0x8A => self.txa(),
+				0xCA => self.dex(),
+				0xE8 => self.inx(),
+				0xA8 => self.tay(),
+				0x98 => self.tya(),
+				0x88 => self.dey(),
+				0xC8 => self.iny(),
+				0x00 => return,
 				// * LDA
 				0xA9 | 0xA5 | 0xB5 | 0xAD | 0xBD | 0xB9 | 0xA1 | 0xB1 => {
 					self.lda(&operation.addressing_mode);
@@ -294,15 +295,18 @@ impl CPU {
 				0xA0 | 0xA4 | 0xB4 | 0xAC | 0xBC => {
 					self.ldy(&operation.addressing_mode);
 				}
-				0xAA => self.tax(),
-				0x8A => self.txa(),
-				0xCA => self.dex(),
-				0xE8 => self.inx(),
-				0xA8 => self.tay(),
-				0x98 => self.tya(),
-				0x88 => self.dey(),
-				0xC8 => self.iny(),
-				0x00 => return,
+				// * STA
+				0x85 | 0x95 | 0x8D | 0x9D | 0x99 | 0x81 | 0x91 => {
+					self.sta(&operation.addressing_mode);
+				}
+				// * STX
+				0x86 | 0x96 | 0x8E => {
+					self.stx(&operation.addressing_mode);
+				}
+				// * STY
+				0x84 | 0x94 | 0x8C => {
+					self.sty(&operation.addressing_mode);
+				}
 				_ => todo!("Operation with opcode 0x{:02x} not yet implemented", code),
 			}
 
