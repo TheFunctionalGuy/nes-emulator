@@ -530,7 +530,16 @@ mod test {
 
 	#[test]
 	fn test_0x86_stx_zero_page() {
-		assert!(false);
+		let mut cpu = CPU::new();
+
+		/* Disassembly:
+		0000   A2 87                LDX #$87
+		0002   86 13                STX $13
+		0004   00                   BRK */
+		let binary = vec![0xA2, 0x87, 0x86, 0x13, 0x00];
+		cpu.load_and_run(binary);
+
+		assert_eq!(cpu.memory[0x0013], 0x87);
 	}
 
 	#[test]
