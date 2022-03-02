@@ -51,7 +51,7 @@ lazy_static! {
 		// * LDA
 		OpCode::new(0xA9, "LDA", 2, 2, AddressingMode::Immediate),
 		OpCode::new(0xA5, "LDA", 2, 3, AddressingMode::ZeroPage),
-		OpCode::new(0xB5, "LDA", 2, 4, AddressingMode::ZeroPage_X),         // ! Untested
+		OpCode::new(0xB5, "LDA", 2, 4, AddressingMode::ZeroPage_X),
 		OpCode::new(0xAD, "LDA", 3, 4, AddressingMode::Absolute),
 		OpCode::new(0xBD, "LDA", 3, 4 /*+1*/, AddressingMode::Absolute_X),
 		OpCode::new(0xB9, "LDA", 3, 4 /*+1*/, AddressingMode::Absolute_Y),  // ! Untested

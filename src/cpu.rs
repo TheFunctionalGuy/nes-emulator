@@ -456,15 +456,16 @@ mod test {
 		assert_eq!(cpu.register_a, 0xFF);
 	}
 
-	// TODO: Implement after TYA
 	#[test]
-	fn test_0xae_ldx_zero_page_y() {
+	fn test_0xb6_ldx_zero_page_y() {
 		let mut cpu = CPU::new();
-		cpu.mem_write(0x0112, 0xBA);
+		cpu.mem_write(0x0012, 0xBA);
 
 		/* Disassembly:
-		 */
-		let binary = vec![0xA0, 0x13, 0xAE, 0xFF, 0x00];
+		0000   A0 13                LDY #$13
+		0002   B6 FF                LDX $FF,Y
+		0004   00                   BRK */
+		let binary = vec![0xA0, 0x13, 0xB6, 0xFF, 0x00];
 		cpu.load_and_run(binary);
 
 		assert_eq!(cpu.register_x, 0xBA);
@@ -513,7 +514,7 @@ mod test {
 		let binary = vec![0xA9, 0xFF, 0xAA, 0xE8, 0xE8, 0x00];
 		cpu.load_and_run(binary);
 
-		assert_eq!(cpu.register_x, 1);
+		assert_eq!(cpu.register_x, 0x01);
 	}
 
 	#[test]
@@ -543,7 +544,7 @@ mod test {
 		let binary = vec![0xA0, 0xFF, 0xC8, 0xC8, 0x00];
 		cpu.load_and_run(binary);
 
-		assert_eq!(cpu.register_y, 1);
+		assert_eq!(cpu.register_y, 0x01);
 	}
 
 	#[test]
