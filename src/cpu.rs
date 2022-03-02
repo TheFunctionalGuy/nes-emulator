@@ -483,79 +483,7 @@ mod test {
 		assert_eq!(cpu.register_y, 0x01);
 	}
 
-	#[test]
-	fn test_0x85_sta_zero_page() {
-		let mut cpu = CPU::new();
-
-		/* Disassembly:
-		0000   A9 20                LDA #$20
-		0002   85 01                STA $01
-		0004   00                   BRK */
-		let binary = vec![0xA9, 0x20, 0x85, 0x01, 0x00];
-		cpu.load_and_run(binary);
-
-		assert_eq!(cpu.memory[0x01], 0x20);
-	}
-
-	#[test]
-	fn test_0x95_sta_zero_page_x() {
-		let mut cpu = CPU::new();
-
-		/* Disassembly:
-		0000   A9 20                LDA #$20
-		0002   AA                   TAX
-		0003   A9 40                LDA #$40
-		0005   95 01                STA $01,X
-		0007   00                   BRK */
-		let binary = vec![0xA9, 0x20, 0xAA, 0xA9, 0x40, 0x95, 0x01, 0x00];
-		cpu.load_and_run(binary);
-
-		assert_eq!(cpu.memory[0x21], 0x40);
-	}
-
-	#[test]
-	fn test_0x99_sta_absolute_y() {
-		let mut cpu = CPU::new();
-
-		/* Disassembly:
-		0000   A0 F1                LDY #$F1
-		0002   98                   TYA
-		0003   99 34 12             STA $1234,Y
-		0006   00                   BRK */
-		let binary = vec![0xA0, 0xF1, 0x98, 0x99, 0x34, 0x12, 0x00];
-		cpu.load_and_run(binary);
-
-		assert_eq!(cpu.memory[0x1325], 0xF1);
-	}
-
-	#[test]
-	fn test_0x86_stx_zero_page() {
-		let mut cpu = CPU::new();
-
-		/* Disassembly:
-		0000   A2 87                LDX #$87
-		0002   86 13                STX $13
-		0004   00                   BRK */
-		let binary = vec![0xA2, 0x87, 0x86, 0x13, 0x00];
-		cpu.load_and_run(binary);
-
-		assert_eq!(cpu.memory[0x0013], 0x87);
-	}
-
-	#[test]
-	fn test_0x84_sty_zero_page() {
-		let mut cpu = CPU::new();
-
-		/* Disassembly:
-		0000   A0 11                LDY #$11
-		0002   84 17                STY $17
-		0004   00                   BRK */
-		let binary = vec![0xA0, 0x11, 0x84, 0x17, 0x00];
-		cpu.load_and_run(binary);
-
-		assert_eq!(cpu.memory[0x0017], 0x11);
-	}
-
+	// * Load Instruction Tests
 	#[test]
 	fn test_0xa9_lda_immediate_flags() {
 		let mut cpu = CPU::new();
@@ -659,6 +587,152 @@ mod test {
 		assert_eq!(cpu.register_y, 0x05);
 	}
 
+	// * Store Instruction Tests
+	#[test]
+	fn test_0x85_sta_zero_page() {
+		let mut cpu = CPU::new();
+
+		/* Disassembly:
+		0000   A9 20                LDA #$20
+		0002   85 01                STA $01
+		0004   00                   BRK */
+		let binary = vec![0xA9, 0x20, 0x85, 0x01, 0x00];
+		cpu.load_and_run(binary);
+
+		assert_eq!(cpu.memory[0x01], 0x20);
+	}
+
+	#[test]
+	fn test_0x95_sta_zero_page_x() {
+		let mut cpu = CPU::new();
+
+		/* Disassembly:
+		0000   A9 20                LDA #$20
+		0002   AA                   TAX
+		0003   A9 40                LDA #$40
+		0005   95 01                STA $01,X
+		0007   00                   BRK */
+		let binary = vec![0xA9, 0x20, 0xAA, 0xA9, 0x40, 0x95, 0x01, 0x00];
+		cpu.load_and_run(binary);
+
+		assert_eq!(cpu.memory[0x21], 0x40);
+	}
+
+	#[test]
+	fn test_0x99_sta_absolute_y() {
+		let mut cpu = CPU::new();
+
+		/* Disassembly:
+		0000   A0 F1                LDY #$F1
+		0002   98                   TYA
+		0003   99 34 12             STA $1234,Y
+		0006   00                   BRK */
+		let binary = vec![0xA0, 0xF1, 0x98, 0x99, 0x34, 0x12, 0x00];
+		cpu.load_and_run(binary);
+
+		assert_eq!(cpu.memory[0x1325], 0xF1);
+	}
+
+	#[test]
+	fn test_0x86_stx_zero_page() {
+		let mut cpu = CPU::new();
+
+		/* Disassembly:
+		0000   A2 87                LDX #$87
+		0002   86 13                STX $13
+		0004   00                   BRK */
+		let binary = vec![0xA2, 0x87, 0x86, 0x13, 0x00];
+		cpu.load_and_run(binary);
+
+		assert_eq!(cpu.memory[0x0013], 0x87);
+	}
+
+	#[test]
+	fn test_0x84_sty_zero_page() {
+		let mut cpu = CPU::new();
+
+		/* Disassembly:
+		0000   A0 11                LDY #$11
+		0002   84 17                STY $17
+		0004   00                   BRK */
+		let binary = vec![0xA0, 0x11, 0x84, 0x17, 0x00];
+		cpu.load_and_run(binary);
+
+		assert_eq!(cpu.memory[0x0017], 0x11);
+	}
+
+	// * Status Register Instruction Tests
+	#[test]
+	fn test_0x18_clc_flag() {
+		let mut cpu = CPU::new();
+
+		let binary = vec![0x18];
+		cpu.load_and_run(binary);
+
+		assert!(false);
+	}
+
+	#[test]
+	fn test_0xd8_cld_flag() {
+		let mut cpu = CPU::new();
+
+		let binary = vec![0xD8];
+		cpu.load_and_run(binary);
+
+		assert!(false);
+	}
+
+	#[test]
+	fn test_0x58_cli_flag() {
+		let mut cpu = CPU::new();
+
+		let binary = vec![0x58];
+		cpu.load_and_run(binary);
+
+		assert!(false);
+	}
+
+	#[test]
+	fn test_0xb8_clv_flag() {
+		let mut cpu = CPU::new();
+
+		let binary = vec![0xB8];
+		cpu.load_and_run(binary);
+
+		assert!(false);
+	}
+
+	#[test]
+	fn test_0x38_sec_flag() {
+		let mut cpu = CPU::new();
+
+		let binary = vec![0x38];
+		cpu.load_and_run(binary);
+
+		assert!(false);
+	}
+
+	#[test]
+	fn test_0xf8_sed_flag() {
+		let mut cpu = CPU::new();
+
+		let binary = vec![0xF8];
+		cpu.load_and_run(binary);
+
+		assert!(false);
+	}
+
+	#[test]
+	fn test_0x78_sei_flag() {
+		let mut cpu = CPU::new();
+
+		let binary = vec![0x78];
+		cpu.load_and_run(binary);
+
+		assert!(false);
+	}
+
+	// * General Tests
 	#[test]
 	fn test_5_ops_working_together() {
 		let mut cpu = CPU::new();

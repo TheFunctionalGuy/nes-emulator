@@ -81,7 +81,6 @@ lazy_static! {
 		OpCode::new(0x8C, "STY", 3, 4, AddressingMode::Absolute),
 
 		// * Status Register Instructions
-		// ! All untested
 		OpCode::new(0x18, "CLC", 1, 2, AddressingMode::NoneAddressing),
 		OpCode::new(0xD8, "CLD", 1, 2, AddressingMode::NoneAddressing),
 		OpCode::new(0x58, "CLI", 1, 2, AddressingMode::NoneAddressing),
