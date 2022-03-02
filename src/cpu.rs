@@ -26,6 +26,7 @@ impl CPU {
 		}
 	}
 
+	// TODO: Move to trait
 	// Memory methods
 	fn mem_read(&self, addr: u16) -> u8 {
 		self.memory[addr as usize]
@@ -55,11 +56,22 @@ impl CPU {
 	// CPU operations
 	pub fn load(&mut self, program: Vec<u8>) {
 		self.memory[0x8000..(0x8000 + program.len())].copy_from_slice(&program[..]);
-		self.program_counter = 0x8000;
+		self.mem_write_u16(0xFFFC, 0x8000);
+	}
+
+	pub fn reset(&mut self) {
+		// Reset all registers
+		self.register_a = 0;
+		self.register_x = 0;
+		self.status = 0;
+
+		// Initialize program counter to 2-byte value at 0xFFFC
+		self.program_counter = self.mem_read_u16(0xFFFC);
 	}
 
 	pub fn load_and_run(&mut self, program: Vec<u8>) {
 		self.load(program);
+		self.reset();
 		self.run();
 	}
 
@@ -152,9 +164,8 @@ mod test {
 	#[test]
 	fn test_0xaa_tax_move_a_to_x() {
 		let mut cpu = CPU::new();
-		cpu.register_a = 10;
 
-		let test_binary = vec![0xAA, 0x00];
+		let test_binary = vec![0xA9, 0x0A, 0xAA, 0x00];
 		cpu.load_and_run(test_binary);
 
 		assert_eq!(cpu.register_x, 10);
@@ -163,9 +174,8 @@ mod test {
 	#[test]
 	fn test_inx_overflow() {
 		let mut cpu = CPU::new();
-		cpu.register_x = 0xFF;
 
-		let test_binary = vec![0xE8, 0xE8, 0x00];
+		let test_binary = vec![0xA9, 0xFF, 0xAA, 0xE8, 0xE8, 0x00];
 		cpu.load_and_run(test_binary);
 
 		assert_eq!(cpu.register_x, 1);
