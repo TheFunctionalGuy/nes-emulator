@@ -202,6 +202,11 @@ impl CPU {
 		self.update_zero_and_negative_flags(self.register_a);
 	}
 
+	fn dex(&mut self) {
+		self.register_x = self.register_x.wrapping_sub(1);
+		self.update_zero_and_negative_flags(self.register_x);
+	}
+
 	fn inx(&mut self) {
 		self.register_x = self.register_x.wrapping_add(1);
 		self.update_zero_and_negative_flags(self.register_x);
@@ -251,6 +256,7 @@ impl CPU {
 				}
 				0xAA => self.tax(),
 				0x8A => self.txa(),
+				0xCA => self.dex(),
 				0xE8 => self.inx(),
 				0x00 => return,
 				_ => todo!("Operation with opcode 0x{:02x} not yet implemented", code),
@@ -425,6 +431,22 @@ mod test {
 		cpu.load_and_run(binary);
 
 		assert_eq!(cpu.register_y, 0x05);
+	}
+
+	#[test]
+	fn test_0xca_dex_underflow() {
+		let mut cpu = CPU::new();
+
+		/* Disassembly:
+		0000   A9 FF                LDA #$FF
+		0002   AA                   TAX
+		0003   E8                   INX
+		0004   E8                   INX
+		0005   00                   BRK */
+		let binary = vec![0xA2, 0x01, 0xCA, 0xCA, 0x00];
+		cpu.load_and_run(binary);
+
+		assert_eq!(cpu.register_x, 0xFF);
 	}
 
 	#[test]
