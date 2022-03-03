@@ -268,35 +268,6 @@ impl CPU {
 		self.mem_write(addr, self.register_y);
 	}
 
-	// * Status Register Instructions
-	fn clc(&mut self) {
-		todo!();
-	}
-
-	fn cld(&mut self) {
-		todo!();
-	}
-
-	fn cli(&mut self) {
-		todo!();
-	}
-
-	fn clv(&mut self) {
-		todo!();
-	}
-
-	fn sec(&mut self) {
-		todo!();
-	}
-
-	fn sed(&mut self) {
-		todo!();
-	}
-
-	fn sei(&mut self) {
-		todo!();
-	}
-
 	// * Helper function for instruction
 	fn update_zero_and_negative_flags(&mut self, result: u8) {
 		if result == 0 {
