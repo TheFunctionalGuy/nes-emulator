@@ -1,19 +1,39 @@
-use crate::opcodes::OPCODES_MAP;
-
 /// CPU emulator for 6502/2A03
-// Constants
-// Bit masks for all flags and inverted masks
-// Flag bit order: N(egative) V 1 B D I Z(ero) C(arry)
-const NEGATIVE_FLAG: u8 = 0b1000_0000;
-const NEGATIVE_FLAG_INV: u8 = 0b0111_1111;
-const ZERO_FLAG: u8 = 0b0000_0010;
-const ZERO_FLAG_INV: u8 = 0b1111_1101;
+use crate::opcodes::OPCODES_MAP;
+use bitflags::bitflags;
 
+// Bit masks for all flags
+// 7 6 5 4 3 2 1 0
+// ---------------
+// N V s s D I Z C
+// | | | | | | | |
+// | | | | | | | +- Carry
+// | | | | | | +--- Zero
+// | | | | | +----- Interrupt Disable
+// | | | | +------- Decimal
+// | | | +--------- No CPU effect (B2 flag)
+// | | +----------- No CPU effect (B1 flag)
+// | +------------- Overflow
+// +--------------- Negative
+bitflags! {
+	pub struct Flags: u8 {
+		const NEGATIVE          = 0b1000_0000;
+		const OVERFLOW          = 0b0100_0000;
+		const B1                = 0b0010_0000;
+		const B2                = 0b0001_0000;
+		const DECIMAL           = 0b0000_1000;
+		const INTERRUPT_DISABLE = 0b0000_0100;
+		const ZERO              = 0b0000_0010;
+		const CARRY             = 0b0000_0001;
+	}
+}
+
+#[allow(clippy::upper_case_acronyms)]
 pub struct CPU {
 	pub register_a: u8,
 	pub register_x: u8,
 	pub register_y: u8,
-	pub status: u8,
+	pub status: Flags,
 	pub program_counter: u16,
 	memory: [u8; 0xFFFF],
 }
@@ -81,7 +101,7 @@ impl CPU {
 			register_a: 0,
 			register_x: 0,
 			register_y: 0,
-			status: 0,
+			status: Flags::empty(),
 			program_counter: 0,
 			memory: [0; 0xFFFF],
 		}
@@ -98,7 +118,8 @@ impl CPU {
 		self.register_a = 0;
 		self.register_x = 0;
 		self.register_y = 0;
-		self.status = 0;
+		// TODO: Determine correct starting flags
+		self.status = Flags::from_bits_truncate(0b0000_0000);
 
 		// Initialize program counter to 2-byte value at 0xFFFC
 		self.program_counter = self.mem_read_u16(0xFFFC);
@@ -279,15 +300,15 @@ impl CPU {
 	// * Helper function for instruction
 	fn update_zero_and_negative_flags(&mut self, result: u8) {
 		if result == 0 {
-			self.status |= ZERO_FLAG;
+			self.status.insert(Flags::ZERO);
 		} else {
-			self.status &= ZERO_FLAG_INV;
+			self.status.remove(Flags::ZERO);
 		}
 
-		if result & NEGATIVE_FLAG != 0 {
-			self.status |= NEGATIVE_FLAG;
+		if result & Flags::NEGATIVE.bits != 0 {
+			self.status.insert(Flags::NEGATIVE);
 		} else {
-			self.status &= NEGATIVE_FLAG_INV;
+			self.status.remove(Flags::NEGATIVE);
 		}
 	}
 
@@ -361,7 +382,6 @@ impl CPU {
 	}
 }
 
-// TODO: Think about flags
 #[cfg(test)]
 mod test {
 	use super::*;
@@ -496,9 +516,9 @@ mod test {
 
 		assert_eq!(cpu.register_a, 0x05);
 		// Z flag unset
-		assert!(cpu.status & 0b0000_0010 == 0b00);
+		assert!(!cpu.status.contains(Flags::ZERO));
 		// N flag unset
-		assert!(cpu.status & 0b1000_0000 == 0);
+		assert!(!cpu.status.contains(Flags::NEGATIVE));
 	}
 
 	#[test]
@@ -512,7 +532,7 @@ mod test {
 		cpu.load_and_run(binary);
 
 		// Z flag set
-		assert!(cpu.status & 0b0000_0010 == 0b10);
+		assert!(cpu.status.contains(Flags::ZERO));
 	}
 
 	#[test]
