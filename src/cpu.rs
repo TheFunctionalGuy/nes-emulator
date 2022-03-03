@@ -363,13 +363,21 @@ impl CPU {
 				}
 
 				// * Status Register Instructions
-				0x18 => self.clc(),
-				0xD8 => self.cld(),
-				0x58 => self.cli(),
-				0xB8 => self.clv(),
-				0x38 => self.sec(),
-				0xF8 => self.sed(),
-				0x78 => self.sei(),
+				// * CLC
+				0x18 => self.status.remove(Flags::CARRY),
+				// * CLD
+				0xD8 => self.status.remove(Flags::DECIMAL),
+				// * CLI
+				0x58 => self.status.remove(Flags::INTERRUPT_DISABLE),
+				// * CLV
+				0xB8 => self.status.remove(Flags::OVERFLOW),
+
+				// * SEC
+				0x38 => self.status.insert(Flags::CARRY),
+				// * SED
+				0xF8 => self.status.insert(Flags::DECIMAL),
+				// * SEI
+				0x78 => self.status.insert(Flags::INTERRUPT_DISABLE),
 
 				// * Error case
 				_ => todo!("Operation with opcode 0x{:02x} not yet implemented", code),
@@ -686,70 +694,107 @@ mod test {
 	fn test_0x18_clc_flag() {
 		let mut cpu = CPU::new();
 
-		let binary = vec![0x18];
-		cpu.load_and_run(binary);
+		/* Disassembly:
+		0000   18                   CLC
+		0001   00                   BRK */
+		let binary = vec![0x18, 0x00];
+		// Prepare CPU state
+		cpu.load(binary);
+		cpu.reset();
+		cpu.status.insert(Flags::CARRY);
+		cpu.run();
 
-		assert!(false);
+		assert!(!cpu.status.contains(Flags::CARRY));
 	}
 
 	#[test]
 	fn test_0xd8_cld_flag() {
 		let mut cpu = CPU::new();
 
-		let binary = vec![0xD8];
-		cpu.load_and_run(binary);
+		/* Disassembly:
+		0000   D8                   CLD
+		0001   00                   BRK */
+		let binary = vec![0xD8, 0x00];
+		// Prepare CPU state
+		cpu.load(binary);
+		cpu.reset();
+		cpu.status.insert(Flags::DECIMAL);
+		cpu.run();
 
-		assert!(false);
+		assert!(!cpu.status.contains(Flags::DECIMAL));
 	}
 
 	#[test]
 	fn test_0x58_cli_flag() {
 		let mut cpu = CPU::new();
 
-		let binary = vec![0x58];
-		cpu.load_and_run(binary);
+		/* Disassembly:
+		0000   58                   CLI
+		0001   00                   BRK */
+		let binary = vec![0x58, 0x00];
+		// Prepare CPU state
+		cpu.load(binary);
+		cpu.reset();
+		cpu.status.insert(Flags::INTERRUPT_DISABLE);
+		cpu.run();
 
-		assert!(false);
+		assert!(!cpu.status.contains(Flags::INTERRUPT_DISABLE));
 	}
 
 	#[test]
 	fn test_0xb8_clv_flag() {
 		let mut cpu = CPU::new();
 
+		/* Disassembly:
+		0000   B8                   CLV
+		0001   00                   BRK */
 		let binary = vec![0xB8];
-		cpu.load_and_run(binary);
+		// Prepare CPU state
+		cpu.load(binary);
+		cpu.reset();
+		cpu.status.insert(Flags::OVERFLOW);
+		cpu.run();
 
-		assert!(false);
+		assert!(!cpu.status.contains(Flags::OVERFLOW));
 	}
 
 	#[test]
 	fn test_0x38_sec_flag() {
 		let mut cpu = CPU::new();
 
-		let binary = vec![0x38];
+		/* Disassembly:
+		0000   38                   SEC
+		0001   00                   BRK */
+		let binary = vec![0x38, 0x00];
 		cpu.load_and_run(binary);
 
-		assert!(false);
+		assert!(cpu.status.contains(Flags::CARRY));
 	}
 
 	#[test]
 	fn test_0xf8_sed_flag() {
 		let mut cpu = CPU::new();
 
-		let binary = vec![0xF8];
+		/* Disassembly:
+		0000   F8                   SED
+		0001   00                   BRK */
+		let binary = vec![0xF8, 0x00];
 		cpu.load_and_run(binary);
 
-		assert!(false);
+		assert!(cpu.status.contains(Flags::DECIMAL));
 	}
 
 	#[test]
 	fn test_0x78_sei_flag() {
 		let mut cpu = CPU::new();
 
-		let binary = vec![0x78];
+		/* Disassembly:
+		0000   78                   SEI
+		0001   00                   BRK */
+		let binary = vec![0x78, 0x00];
 		cpu.load_and_run(binary);
 
-		assert!(false);
+		assert!(cpu.status.contains(Flags::INTERRUPT_DISABLE));
 	}
 
 	// * General Tests
