@@ -1,3 +1,4 @@
+//! Opcodes for 6502/2A03 processor
 use std::collections::HashMap;
 
 use crate::cpu::AddressingMode;
@@ -46,22 +47,22 @@ lazy_static! {
 		OpCode::new(0xA5, "LDA", 2, 3, AddressingMode::ZeroPage),
 		OpCode::new(0xB5, "LDA", 2, 4, AddressingMode::ZeroPage_X),
 		OpCode::new(0xAD, "LDA", 3, 4, AddressingMode::Absolute),
-		OpCode::new(0xBD, "LDA", 3, 4 /*+1*/, AddressingMode::Absolute_X),
-		OpCode::new(0xB9, "LDA", 3, 4 /*+1*/, AddressingMode::Absolute_Y),
+		OpCode::new(0xBD, "LDA", 3, 4 /* +1 if page boundary crossed */, AddressingMode::Absolute_X),
+		OpCode::new(0xB9, "LDA", 3, 4 /* +1 if page boundary crossed */, AddressingMode::Absolute_Y),
 		OpCode::new(0xA1, "LDA", 2, 6, AddressingMode::Indirect_X),         // ! Untested
-		OpCode::new(0xB1, "LDA", 2, 5 /*+1*/, AddressingMode::Indirect_Y),  // ! Untested
+		OpCode::new(0xB1, "LDA", 2, 5 /* +1 if page boundary crossed */, AddressingMode::Indirect_Y),  // ! Untested
 
 		OpCode::new(0xA2, "LDX", 2, 2, AddressingMode::Immediate),
 		OpCode::new(0xA6, "LDX", 2, 3, AddressingMode::ZeroPage),
 		OpCode::new(0xB6, "LDX", 2, 4, AddressingMode::ZeroPage_Y),
 		OpCode::new(0xAE, "LDX", 3, 4, AddressingMode::Absolute),
-		OpCode::new(0xBE, "LDX", 3, 4 /*+1*/, AddressingMode::Absolute_Y),
+		OpCode::new(0xBE, "LDX", 3, 4 /* +1 if page boundary crossed */, AddressingMode::Absolute_Y),
 
 		OpCode::new(0xA0, "LDY", 2, 2, AddressingMode::Immediate),
 		OpCode::new(0xA4, "LDY", 2, 3, AddressingMode::ZeroPage),
 		OpCode::new(0xB4, "LDY", 2, 4, AddressingMode::ZeroPage_X),
 		OpCode::new(0xAC, "LDY", 3, 4, AddressingMode::Absolute),
-		OpCode::new(0xBC, "LDY", 3, 4 /*+1*/, AddressingMode::Absolute_X),
+		OpCode::new(0xBC, "LDY", 3, 4 /* +1 if page boundary crossed */, AddressingMode::Absolute_X),
 
 		// * Store Instructions
 		OpCode::new(0x85, "STA", 2, 3, AddressingMode::ZeroPage),
@@ -79,6 +80,11 @@ lazy_static! {
 		OpCode::new(0x84, "STY", 2, 3, AddressingMode::ZeroPage),
 		OpCode::new(0x94, "STY", 2, 4, AddressingMode::ZeroPage_X),
 		OpCode::new(0x8C, "STY", 3, 4, AddressingMode::Absolute),
+
+		// * Control Flow Instructions
+		// * Branch Instructions
+		OpCode::new(0x10, "BPL", 2, 2 /*+1*/)
+
 
 		// * Status Register Instructions
 		OpCode::new(0x18, "CLC", 1, 2, AddressingMode::NoneAddressing),

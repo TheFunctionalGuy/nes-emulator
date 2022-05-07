@@ -1,4 +1,4 @@
-/// CPU emulator for 6502/2A03
+//! CPU emulator for 6502/2A03 processor
 use crate::opcodes::OPCODES_MAP;
 use bitflags::bitflags;
 
