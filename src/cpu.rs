@@ -702,7 +702,25 @@ mod test {
 	}
 
 	// * Decrement & Increment Instruction Tests
-	// TODO: Test DEC & INC instructions
+	#[test]
+	fn test_dec_inc_0xce_dec_underflow() {
+		let mut cpu = CPU::new();
+
+		/* Disassembly:
+		0000   A9 00                LDA #$00
+		0002   8D 06 02             STA $0206
+		0005   CE 06 02             DEC $0206
+		0008   AE 06 02             LDX $0206
+		000B   00                   BRK */
+		let binary = vec![
+			0xA9, 0x00, 0x8D, 0x06, 0x02, 0xCE, 0x06, 0x02, 0xAE, 0x06, 0x02, 0x00,
+		];
+		cpu.load_and_run(binary);
+
+		assert_eq!(cpu.memory[0x0206], 0xFF);
+		assert_eq!(cpu.register_x, 0xFF);
+	}
+
 	#[test]
 	fn test_dec_inc_0xca_dex_underflow() {
 		let mut cpu = CPU::new();
@@ -719,6 +737,38 @@ mod test {
 	}
 
 	#[test]
+	fn test_dec_inc_0x88_dey_underflow() {
+		let mut cpu = CPU::new();
+
+		/* Disassembly:
+		0000   A0 01                LDY #$01
+		0002   88                   DEY
+		0003   88                   DEY
+		0004   00                   BRK */
+		let binary = vec![0xA0, 0x01, 0x88, 0x88, 0x00];
+		cpu.load_and_run(binary);
+
+		assert_eq!(cpu.register_y, 0xFF);
+	}
+
+	#[test]
+	fn test_dec_inc_0xe6_inc_overflow() {
+		let mut cpu = CPU::new();
+
+		/* Disassembly:
+		0000   A9 FF                LDA #$FF
+		0002   85 33                STA $33
+		0004   E6 33                INC $33
+		0006   A6 33                LDX $33
+		0008   00                   BRK */
+		let binary = vec![0xA9, 0xFF, 0x85, 0x33, 0xE6, 0x33, 0xA6, 0x33, 0x00];
+		cpu.load_and_run(binary);
+
+		assert_eq!(cpu.memory[0x33], 0x00);
+		assert_eq!(cpu.register_x, 0x00);
+	}
+
+	#[test]
 	fn test_dec_inc_0xe8_inx_overflow() {
 		let mut cpu = CPU::new();
 
@@ -732,21 +782,6 @@ mod test {
 		cpu.load_and_run(binary);
 
 		assert_eq!(cpu.register_x, 0x01);
-	}
-
-	#[test]
-	fn test_dec_inc_0x88_dey_underflow() {
-		let mut cpu = CPU::new();
-
-		/* Disassembly:
-		0000   A0 01                LDY #$01
-		0002   88                   DEY
-		0003   88                   DEY
-		0004   00                   BRK */
-		let binary = vec![0xA0, 0x01, 0x88, 0x88, 0x00];
-		cpu.load_and_run(binary);
-
-		assert_eq!(cpu.register_y, 0xFF);
 	}
 
 	#[test]
