@@ -93,6 +93,19 @@ lazy_static! {
 		OpCode::new(0x94, "STY", 2, 4, AddressingMode::ZeroPage_X),
 		OpCode::new(0x8C, "STY", 3, 4, AddressingMode::Absolute),
 
+		// * Logical Operation Instructions
+		OpCode::new(0x29, "AND", 2, 2, AddressingMode::Immediate),
+		OpCode::new(0x25, "AND", 2, 3, AddressingMode::ZeroPage),
+		OpCode::new(0x35, "AND", 2, 4, AddressingMode::ZeroPage_X),
+		OpCode::new(0x2D, "AND", 3, 4, AddressingMode::Absolute),
+		OpCode::new(0x3D, "AND", 3, 4 /* +1 if page boundary crossed */, AddressingMode::Absolute_X),
+		OpCode::new(0x39, "AND", 3, 4 /* +1 if page boundary crossed */, AddressingMode::Absolute_Y),
+		OpCode::new(0x21, "AND", 2, 6, AddressingMode::Indirect_X),
+		OpCode::new(0x31, "AND", 2, 5 /* +1 if page boundary crossed */, AddressingMode::Indirect_Y),
+
+		// TODO: EOR
+		// TODO: ORA
+
 		// * Control Flow Instructions
 		// * Branch Instructions
 		OpCode::new(0x90, "BCC", 2, 2 /* +1/+2 if branch on same/different page */, AddressingMode::NoneAddressing),
