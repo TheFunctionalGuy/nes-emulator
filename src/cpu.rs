@@ -204,45 +204,6 @@ impl CPU {
 		self.update_zero_and_negative_flags(self.register_a);
 	}
 
-	// * Decrement & Increment Instructions
-	fn dec(&mut self, mode: &AddressingMode) {
-		let addr = self.get_operand_address(mode);
-		let value = self.mem_read(addr);
-		let decreased_value = value.wrapping_sub(1);
-
-		self.mem_write(addr, decreased_value);
-		self.update_zero_and_negative_flags(decreased_value);
-	}
-
-	fn dex(&mut self) {
-		self.register_x = self.register_x.wrapping_sub(1);
-		self.update_zero_and_negative_flags(self.register_x);
-	}
-
-	fn dey(&mut self) {
-		self.register_y = self.register_y.wrapping_sub(1);
-		self.update_zero_and_negative_flags(self.register_y);
-	}
-
-	fn inc(&mut self, mode: &AddressingMode) {
-		let addr = self.get_operand_address(mode);
-		let value = self.mem_read(addr);
-		let increased_value = value.wrapping_add(1);
-
-		self.mem_write(addr, increased_value);
-		self.update_zero_and_negative_flags(increased_value);
-	}
-
-	fn inx(&mut self) {
-		self.register_x = self.register_x.wrapping_add(1);
-		self.update_zero_and_negative_flags(self.register_x);
-	}
-
-	fn iny(&mut self) {
-		self.register_y = self.register_y.wrapping_add(1);
-		self.update_zero_and_negative_flags(self.register_y);
-	}
-
 	// * Load Instructions
 	fn lda(&mut self, mode: &AddressingMode) {
 		let addr = self.get_operand_address(mode);
@@ -287,7 +248,79 @@ impl CPU {
 		self.mem_write(addr, self.register_y);
 	}
 
-	// * Branch Instructions
+	// * Decrement & Increment Instructions
+	fn dec(&mut self, mode: &AddressingMode) {
+		let addr = self.get_operand_address(mode);
+		let value = self.mem_read(addr);
+		let decreased_value = value.wrapping_sub(1);
+
+		self.mem_write(addr, decreased_value);
+		self.update_zero_and_negative_flags(decreased_value);
+	}
+
+	fn dex(&mut self) {
+		self.register_x = self.register_x.wrapping_sub(1);
+		self.update_zero_and_negative_flags(self.register_x);
+	}
+
+	fn dey(&mut self) {
+		self.register_y = self.register_y.wrapping_sub(1);
+		self.update_zero_and_negative_flags(self.register_y);
+	}
+
+	fn inc(&mut self, mode: &AddressingMode) {
+		let addr = self.get_operand_address(mode);
+		let value = self.mem_read(addr);
+		let increased_value = value.wrapping_add(1);
+
+		self.mem_write(addr, increased_value);
+		self.update_zero_and_negative_flags(increased_value);
+	}
+
+	fn inx(&mut self) {
+		self.register_x = self.register_x.wrapping_add(1);
+		self.update_zero_and_negative_flags(self.register_x);
+	}
+
+	fn iny(&mut self) {
+		self.register_y = self.register_y.wrapping_add(1);
+		self.update_zero_and_negative_flags(self.register_y);
+	}
+
+	// * Logical Operations
+	fn logical_instruction<F: Fn(u8, u8) -> u8>(&mut self, mode: &AddressingMode, f: F) {
+		let addr = self.get_operand_address(mode);
+		let value = self.mem_read(addr);
+
+		self.register_a = f(self.register_a, value);
+		self.update_zero_and_negative_flags(self.register_a);
+	}
+
+	fn and(&mut self, mode: &AddressingMode) {
+		let addr = self.get_operand_address(mode);
+		let value = self.mem_read(addr);
+
+		self.register_a &= value;
+		self.update_zero_and_negative_flags(self.register_a);
+	}
+
+	fn eor(&mut self, mode: &AddressingMode) {
+		let addr = self.get_operand_address(mode);
+		let value = self.mem_read(addr);
+
+		self.register_a ^= value;
+		self.update_zero_and_negative_flags(self.register_a);
+	}
+
+	fn ora(&mut self, mode: &AddressingMode) {
+		let addr = self.get_operand_address(mode);
+		let value = self.mem_read(addr);
+
+		self.register_a |= value;
+		self.update_zero_and_negative_flags(self.register_a);
+	}
+
+	// * Conditional Branch Instructions
 	fn branch(&mut self, condition: bool) {
 		if condition {
 			let offset = self.mem_read(self.program_counter) as u16;
@@ -331,20 +364,6 @@ impl CPU {
 				0xA8 => self.tay(),
 				0x98 => self.tya(),
 
-				// * Decrement & Increment Instructions
-				// * DEC
-				0xC6 | 0xD6 | 0xCE | 0xDE => {
-					self.dec(&operation.addressing_mode);
-				}
-				0xCA => self.dex(),
-				0x88 => self.dey(),
-				// * INC
-				0xE6 | 0xF6 | 0xEE | 0xFE => {
-					self.inc(&operation.addressing_mode);
-				}
-				0xE8 => self.inx(),
-				0xC8 => self.iny(),
-
 				// * Load Instructions
 				// * LDA
 				0xA9 | 0xA5 | 0xB5 | 0xAD | 0xBD | 0xB9 | 0xA1 | 0xB1 => {
@@ -373,6 +392,34 @@ impl CPU {
 					self.sty(&operation.addressing_mode);
 				}
 
+				// * Decrement & Increment Instructions
+				// * DEC
+				0xC6 | 0xD6 | 0xCE | 0xDE => {
+					self.dec(&operation.addressing_mode);
+				}
+				0xCA => self.dex(),
+				0x88 => self.dey(),
+				// * INC
+				0xE6 | 0xF6 | 0xEE | 0xFE => {
+					self.inc(&operation.addressing_mode);
+				}
+				0xE8 => self.inx(),
+				0xC8 => self.iny(),
+
+				// * Logical Operations
+				// * AND
+				0x29 | 0x25 | 0x35 | 0x2D | 0x3D | 0x39 | 0x21 | 0x31 => {
+					self.and(&operation.addressing_mode);
+				}
+				// * EOR
+				0x49 | 0x45 | 0x55 | 0x4D | 0x5D | 0x59 | 0x41 | 0x51 => {
+					self.eor(&operation.addressing_mode);
+				}
+				// * ORA
+				0x09 | 0x05 | 0x15 | 0x0D | 0x1D | 0x19 | 0x01 | 0x11 => {
+					self.ora(&operation.addressing_mode);
+				}
+
 				// * Status Register Instructions
 				// * CLC
 				0x18 => self.status.remove(Flags::CARRY),
@@ -390,7 +437,7 @@ impl CPU {
 				// * SEI
 				0x78 => self.status.insert(Flags::INTERRUPT_DISABLE),
 
-				// * Branch Instruction
+				// * Conditional Branch Instructions
 				0x90 => self.branch(!self.status.contains(Flags::CARRY)),
 				0xB0 => self.branch(self.status.contains(Flags::CARRY)),
 				0xF0 => self.branch(self.status.contains(Flags::ZERO)),
@@ -400,7 +447,7 @@ impl CPU {
 				0x50 => self.branch(!self.status.contains(Flags::OVERFLOW)),
 				0x70 => self.branch(self.status.contains(Flags::OVERFLOW)),
 
-				// * Interrupt Instructions
+				// * Interrupts
 				// TODO: Set interrupt bit
 				0x00 => return,
 
