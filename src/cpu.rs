@@ -183,7 +183,7 @@ impl CPU {
 	}
 
 	// * Instructions
-	// * None Addressing Instructions
+	// * Transfer Instructions
 	fn tax(&mut self) {
 		self.register_x = self.register_a;
 		self.update_zero_and_negative_flags(self.register_x);
@@ -192,16 +192,6 @@ impl CPU {
 	fn txa(&mut self) {
 		self.register_a = self.register_x;
 		self.update_zero_and_negative_flags(self.register_a);
-	}
-
-	fn dex(&mut self) {
-		self.register_x = self.register_x.wrapping_sub(1);
-		self.update_zero_and_negative_flags(self.register_x);
-	}
-
-	fn inx(&mut self) {
-		self.register_x = self.register_x.wrapping_add(1);
-		self.update_zero_and_negative_flags(self.register_x);
 	}
 
 	fn tay(&mut self) {
@@ -214,9 +204,38 @@ impl CPU {
 		self.update_zero_and_negative_flags(self.register_a);
 	}
 
+	// * Decrement & Increment Instructions
+	fn dec(&mut self, mode: &AddressingMode) {
+		let addr = self.get_operand_address(mode);
+		let value = self.mem_read(addr);
+		let decreased_value = value.wrapping_sub(1);
+
+		self.mem_write(addr, decreased_value);
+		self.update_zero_and_negative_flags(decreased_value);
+	}
+
+	fn dex(&mut self) {
+		self.register_x = self.register_x.wrapping_sub(1);
+		self.update_zero_and_negative_flags(self.register_x);
+	}
+
 	fn dey(&mut self) {
 		self.register_y = self.register_y.wrapping_sub(1);
 		self.update_zero_and_negative_flags(self.register_y);
+	}
+
+	fn inc(&mut self, mode: &AddressingMode) {
+		let addr = self.get_operand_address(mode);
+		let value = self.mem_read(addr);
+		let increased_value = value.wrapping_add(1);
+
+		self.mem_write(addr, increased_value);
+		self.update_zero_and_negative_flags(increased_value);
+	}
+
+	fn inx(&mut self) {
+		self.register_x = self.register_x.wrapping_add(1);
+		self.update_zero_and_negative_flags(self.register_x);
 	}
 
 	fn iny(&mut self) {
@@ -304,16 +323,25 @@ impl CPU {
 			self.program_counter += 1;
 
 			match code {
-				// * None Addressing Instructions
+				// * Transfer Instructions
 				0xAA => self.tax(),
 				0x8A => self.txa(),
-				0xCA => self.dex(),
-				0xE8 => self.inx(),
 				0xA8 => self.tay(),
 				0x98 => self.tya(),
+
+				// * Decrement & Increment Instructions
+				// * DEC
+				0xC6 | 0xD6 | 0xCE | 0xDE => {
+					self.dec(&operation.addressing_mode);
+				}
+				0xCA => self.dex(),
 				0x88 => self.dey(),
+				// * INC
+				0xE6 | 0xF6 | 0xEE | 0xFE => {
+					self.inc(&operation.addressing_mode);
+				}
+				0xE8 => self.inx(),
 				0xC8 => self.iny(),
-				0x00 => return,
 
 				// * Load Instructions
 				// * LDA
@@ -369,6 +397,9 @@ impl CPU {
 				0x10 => self.branch(!self.status.contains(Flags::NEGATIVE)),
 				0x50 => self.branch(!self.status.contains(Flags::OVERFLOW)),
 				0x70 => self.branch(self.status.contains(Flags::OVERFLOW)),
+
+				// * Interrupt Instructions
+				0x00 => return,
 
 				// * Error case
 				_ => todo!("Operation with opcode 0x{:02x} not yet implemented", code),

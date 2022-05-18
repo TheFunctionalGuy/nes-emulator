@@ -31,15 +31,27 @@ impl OpCode {
 
 lazy_static! {
 	pub static ref CPU_OPS_CODES: Vec<OpCode> = vec![
-		// * None Addressing Instructions
+		// * Interrupts
 		OpCode::new(0x00, "BRK", 1, 7, AddressingMode::NoneAddressing),
+
+		// * Transfer Instructions
 		OpCode::new(0xAA, "TAX", 1, 2, AddressingMode::NoneAddressing),
 		OpCode::new(0x8A, "TXA", 1, 2, AddressingMode::NoneAddressing),
-		OpCode::new(0xCA, "DEX", 1, 2, AddressingMode::NoneAddressing),
-		OpCode::new(0xE8, "INX", 1, 2, AddressingMode::NoneAddressing),
 		OpCode::new(0xA8, "TAY", 1, 2, AddressingMode::NoneAddressing),
 		OpCode::new(0x98, "TYA", 1, 2, AddressingMode::NoneAddressing),
+
+		// * Decrement & Increment Instructions
+		OpCode::new(0xC6, "DEC", 2, 5, AddressingMode::ZeroPage),
+		OpCode::new(0xD6, "DEC", 2, 6, AddressingMode::ZeroPage_X),
+		OpCode::new(0xCE, "DEC", 3, 6, AddressingMode::Absolute),
+		OpCode::new(0xDE, "DEC", 3, 7, AddressingMode::Absolute_X),
+		OpCode::new(0xCA, "DEX", 1, 2, AddressingMode::NoneAddressing),
 		OpCode::new(0x88, "DEY", 1, 2, AddressingMode::NoneAddressing),
+		OpCode::new(0xE6, "INC", 2, 5, AddressingMode::ZeroPage),
+		OpCode::new(0xF6, "INC", 2, 6, AddressingMode::ZeroPage_X),
+		OpCode::new(0xEE, "INC", 3, 6, AddressingMode::Absolute),
+		OpCode::new(0xFE, "INC", 3, 7, AddressingMode::Absolute_X),
+		OpCode::new(0xE8, "INX", 1, 2, AddressingMode::NoneAddressing),
 		OpCode::new(0xC8, "INY", 1, 2, AddressingMode::NoneAddressing),
 
 		// * Load Instructions
