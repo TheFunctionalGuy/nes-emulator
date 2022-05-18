@@ -29,30 +29,16 @@ impl OpCode {
 	}
 }
 
+// The opcodes are roughly ordered by type like in:
+// https://www.masswerk.at/6502/6502_instruction_set.html.
+// Under section "Instruction by Type".
 lazy_static! {
 	pub static ref CPU_OPS_CODES: Vec<OpCode> = vec![
-		// * Interrupts
-		OpCode::new(0x00, "BRK", 1, 7, AddressingMode::NoneAddressing),
-
 		// * Transfer Instructions
 		OpCode::new(0xAA, "TAX", 1, 2, AddressingMode::NoneAddressing),
 		OpCode::new(0x8A, "TXA", 1, 2, AddressingMode::NoneAddressing),
 		OpCode::new(0xA8, "TAY", 1, 2, AddressingMode::NoneAddressing),
 		OpCode::new(0x98, "TYA", 1, 2, AddressingMode::NoneAddressing),
-
-		// * Decrement & Increment Instructions
-		OpCode::new(0xC6, "DEC", 2, 5, AddressingMode::ZeroPage),
-		OpCode::new(0xD6, "DEC", 2, 6, AddressingMode::ZeroPage_X),
-		OpCode::new(0xCE, "DEC", 3, 6, AddressingMode::Absolute),
-		OpCode::new(0xDE, "DEC", 3, 7, AddressingMode::Absolute_X),
-		OpCode::new(0xCA, "DEX", 1, 2, AddressingMode::NoneAddressing),
-		OpCode::new(0x88, "DEY", 1, 2, AddressingMode::NoneAddressing),
-		OpCode::new(0xE6, "INC", 2, 5, AddressingMode::ZeroPage),
-		OpCode::new(0xF6, "INC", 2, 6, AddressingMode::ZeroPage_X),
-		OpCode::new(0xEE, "INC", 3, 6, AddressingMode::Absolute),
-		OpCode::new(0xFE, "INC", 3, 7, AddressingMode::Absolute_X),
-		OpCode::new(0xE8, "INX", 1, 2, AddressingMode::NoneAddressing),
-		OpCode::new(0xC8, "INY", 1, 2, AddressingMode::NoneAddressing),
 
 		// * Load Instructions
 		OpCode::new(0xA9, "LDA", 2, 2, AddressingMode::Immediate),
@@ -93,7 +79,25 @@ lazy_static! {
 		OpCode::new(0x94, "STY", 2, 4, AddressingMode::ZeroPage_X),
 		OpCode::new(0x8C, "STY", 3, 4, AddressingMode::Absolute),
 
-		// * Logical Operation Instructions
+		// TODO: Stack Instructions
+
+		// * Decrement & Increment Instructions
+		OpCode::new(0xC6, "DEC", 2, 5, AddressingMode::ZeroPage),
+		OpCode::new(0xD6, "DEC", 2, 6, AddressingMode::ZeroPage_X),
+		OpCode::new(0xCE, "DEC", 3, 6, AddressingMode::Absolute),
+		OpCode::new(0xDE, "DEC", 3, 7, AddressingMode::Absolute_X),
+		OpCode::new(0xCA, "DEX", 1, 2, AddressingMode::NoneAddressing),
+		OpCode::new(0x88, "DEY", 1, 2, AddressingMode::NoneAddressing),
+		OpCode::new(0xE6, "INC", 2, 5, AddressingMode::ZeroPage),
+		OpCode::new(0xF6, "INC", 2, 6, AddressingMode::ZeroPage_X),
+		OpCode::new(0xEE, "INC", 3, 6, AddressingMode::Absolute),
+		OpCode::new(0xFE, "INC", 3, 7, AddressingMode::Absolute_X),
+		OpCode::new(0xE8, "INX", 1, 2, AddressingMode::NoneAddressing),
+		OpCode::new(0xC8, "INY", 1, 2, AddressingMode::NoneAddressing),
+
+		// TODO: Arithmetic Operations
+
+		// * Logical Operations
 		OpCode::new(0x29, "AND", 2, 2, AddressingMode::Immediate),
 		OpCode::new(0x25, "AND", 2, 3, AddressingMode::ZeroPage),
 		OpCode::new(0x35, "AND", 2, 4, AddressingMode::ZeroPage_X),
@@ -121,16 +125,7 @@ lazy_static! {
 		OpCode::new(0x01, "ORA", 2, 6, AddressingMode::Indirect_X),
 		OpCode::new(0x11, "ORA", 2, 5 /* +1 if page boundary crossed */, AddressingMode::Indirect_Y),
 
-		// * Control Flow Instructions
-		// * Branch Instructions
-		OpCode::new(0x90, "BCC", 2, 2 /* +1/+2 if branch on same/different page */, AddressingMode::NoneAddressing),
-		OpCode::new(0xB0, "BCS", 2, 2 /* +1/+2 if branch on same/different page */, AddressingMode::NoneAddressing),
-		OpCode::new(0xF0, "BEQ", 2, 2 /* +1/+2 if branch on same/different page */, AddressingMode::NoneAddressing),
-		OpCode::new(0x30, "BMI", 2, 2 /* +1/+2 if branch on same/different page */, AddressingMode::NoneAddressing),
-		OpCode::new(0xD0, "BNE", 2, 2 /* +1/+2 if branch on same/different page */, AddressingMode::NoneAddressing),
-		OpCode::new(0x10, "BPL", 2, 2 /* +1/+2 if branch on same/different page */, AddressingMode::NoneAddressing),
-		OpCode::new(0x50, "BVC", 2, 2 /* +1/+2 if branch on same/different page */, AddressingMode::NoneAddressing),  // ! Untested
-		OpCode::new(0x70, "BVS", 2, 2 /* +1/+2 if branch on same/different page */, AddressingMode::NoneAddressing),  // ! Untested
+		// TODO: Shift & Rotate Instructions
 
 		// * Status Register Instructions
 		OpCode::new(0x18, "CLC", 1, 2, AddressingMode::NoneAddressing),
@@ -141,6 +136,25 @@ lazy_static! {
 		OpCode::new(0x38, "SEC", 1, 2, AddressingMode::NoneAddressing),
 		OpCode::new(0xF8, "SED", 1, 2, AddressingMode::NoneAddressing),
 		OpCode::new(0x78, "SEI", 1, 2, AddressingMode::NoneAddressing),
+
+		// TODO: Comparison Instructions
+
+		// * Conditional Branch Instructions
+		OpCode::new(0x90, "BCC", 2, 2 /* +1/+2 if branch on same/different page */, AddressingMode::NoneAddressing),
+		OpCode::new(0xB0, "BCS", 2, 2 /* +1/+2 if branch on same/different page */, AddressingMode::NoneAddressing),
+		OpCode::new(0xF0, "BEQ", 2, 2 /* +1/+2 if branch on same/different page */, AddressingMode::NoneAddressing),
+		OpCode::new(0x30, "BMI", 2, 2 /* +1/+2 if branch on same/different page */, AddressingMode::NoneAddressing),
+		OpCode::new(0xD0, "BNE", 2, 2 /* +1/+2 if branch on same/different page */, AddressingMode::NoneAddressing),
+		OpCode::new(0x10, "BPL", 2, 2 /* +1/+2 if branch on same/different page */, AddressingMode::NoneAddressing),
+		OpCode::new(0x50, "BVC", 2, 2 /* +1/+2 if branch on same/different page */, AddressingMode::NoneAddressing),  // ! Untested
+		OpCode::new(0x70, "BVS", 2, 2 /* +1/+2 if branch on same/different page */, AddressingMode::NoneAddressing),  // ! Untested
+
+		// TODO: Jumps & Subroutines
+
+		// * Interrupts
+		OpCode::new(0x00, "BRK", 1, 7, AddressingMode::NoneAddressing),
+
+		// TODO: Other Instructions
 	];
 
 	pub static ref OPCODES_MAP: HashMap<u8, &'static OpCode> = {
