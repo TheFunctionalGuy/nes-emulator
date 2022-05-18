@@ -49,8 +49,8 @@ lazy_static! {
 		OpCode::new(0xAD, "LDA", 3, 4, AddressingMode::Absolute),
 		OpCode::new(0xBD, "LDA", 3, 4 /* +1 if page boundary crossed */, AddressingMode::Absolute_X),
 		OpCode::new(0xB9, "LDA", 3, 4 /* +1 if page boundary crossed */, AddressingMode::Absolute_Y),
-		OpCode::new(0xA1, "LDA", 2, 6, AddressingMode::Indirect_X),                                    // ! Untested (Indirect_X)
-		OpCode::new(0xB1, "LDA", 2, 5 /* +1 if page boundary crossed */, AddressingMode::Indirect_Y),  // ! Untested (Indirect_Y)
+		OpCode::new(0xA1, "LDA", 2, 6, AddressingMode::Indirect_X),                                                   // ! Untested (Indirect_X)
+		OpCode::new(0xB1, "LDA", 2, 5 /* +1 if page boundary crossed */, AddressingMode::Indirect_Y),                 // ! Untested (Indirect_Y)
 
 		OpCode::new(0xA2, "LDX", 2, 2, AddressingMode::Immediate),
 		OpCode::new(0xA6, "LDX", 2, 3, AddressingMode::ZeroPage),
@@ -70,8 +70,8 @@ lazy_static! {
 		OpCode::new(0x8D, "STA", 3, 4, AddressingMode::Absolute),
 		OpCode::new(0x9D, "STA", 3, 5, AddressingMode::Absolute_X),
 		OpCode::new(0x99, "STA", 3, 5, AddressingMode::Absolute_Y),
-		OpCode::new(0x81, "STA", 2, 6, AddressingMode::Indirect_X),                                    // ! Untested (Indirect_X)
-		OpCode::new(0x91, "STA", 2, 6, AddressingMode::Indirect_Y),                                    // ! Untested (Indirect_Y)
+		OpCode::new(0x81, "STA", 2, 6, AddressingMode::Indirect_X),                                                   // ! Untested (Indirect_X)
+		OpCode::new(0x91, "STA", 2, 6, AddressingMode::Indirect_Y),                                                   // ! Untested (Indirect_Y)
 
 		OpCode::new(0x86, "STX", 2, 3, AddressingMode::ZeroPage),
 		OpCode::new(0x96, "STX", 2, 4, AddressingMode::ZeroPage_Y),
@@ -83,8 +83,14 @@ lazy_static! {
 
 		// * Control Flow Instructions
 		// * Branch Instructions
-		// OpCode::new(0x10, "BPL", 2, 2 /*+1*/)
-
+		OpCode::new(0x90, "BCC", 2, 2 /* +1/+2 if branch on same/different page */, AddressingMode::NoneAddressing),
+		OpCode::new(0xB0, "BCS", 2, 2 /* +1/+2 if branch on same/different page */, AddressingMode::NoneAddressing),
+		OpCode::new(0xF0, "BEQ", 2, 2 /* +1/+2 if branch on same/different page */, AddressingMode::NoneAddressing),
+		OpCode::new(0x30, "BMI", 2, 2 /* +1/+2 if branch on same/different page */, AddressingMode::NoneAddressing),
+		OpCode::new(0xD0, "BNE", 2, 2 /* +1/+2 if branch on same/different page */, AddressingMode::NoneAddressing),
+		OpCode::new(0x10, "BPL", 2, 2 /* +1/+2 if branch on same/different page */, AddressingMode::NoneAddressing),
+		OpCode::new(0x50, "BVC", 2, 2 /* +1/+2 if branch on same/different page */, AddressingMode::NoneAddressing),  // ! Untested
+		OpCode::new(0x70, "BVS", 2, 2 /* +1/+2 if branch on same/different page */, AddressingMode::NoneAddressing),  // ! Untested
 
 		// * Status Register Instructions
 		OpCode::new(0x18, "CLC", 1, 2, AddressingMode::NoneAddressing),

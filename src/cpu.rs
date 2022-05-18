@@ -268,6 +268,16 @@ impl CPU {
 		self.mem_write(addr, self.register_y);
 	}
 
+	// * Branch Instructions
+	fn branch(&mut self, condition: bool) {
+		if condition {
+			let offset = self.mem_read(self.program_counter) as u16;
+			let jump_target = self.program_counter.wrapping_add(offset);
+
+			self.program_counter = jump_target;
+		}
+	}
+
 	// * Helper function for instruction
 	fn update_zero_and_negative_flags(&mut self, result: u8) {
 		if result == 0 {
@@ -350,6 +360,16 @@ impl CPU {
 				// * SEI
 				0x78 => self.status.insert(Flags::INTERRUPT_DISABLE),
 
+				// * Branch Instruction
+				0x90 => self.branch(!self.status.contains(Flags::CARRY)),
+				0xB0 => self.branch(self.status.contains(Flags::CARRY)),
+				0xF0 => self.branch(self.status.contains(Flags::ZERO)),
+				0x30 => self.branch(self.status.contains(Flags::NEGATIVE)),
+				0xD0 => self.branch(!self.status.contains(Flags::ZERO)),
+				0x10 => self.branch(!self.status.contains(Flags::NEGATIVE)),
+				0x50 => self.branch(!self.status.contains(Flags::OVERFLOW)),
+				0x70 => self.branch(self.status.contains(Flags::OVERFLOW)),
+
 				// * Error case
 				_ => todo!("Operation with opcode 0x{:02x} not yet implemented", code),
 			}
@@ -366,7 +386,7 @@ mod test {
 	use super::*;
 
 	#[test]
-	fn test_0xaa_tax_move_a_to_x() {
+	fn test_transfer_0xaa_tax_move_a_to_x() {
 		let mut cpu = CPU::new();
 
 		/* Disassembly:
@@ -380,7 +400,7 @@ mod test {
 	}
 
 	#[test]
-	fn test_0x8a_txa_move_x_to_a() {
+	fn test_transfer_0x8a_txa_move_x_to_a() {
 		let mut cpu = CPU::new();
 
 		/* Disassembly:
@@ -425,7 +445,7 @@ mod test {
 	}
 
 	#[test]
-	fn test_0xa8_tay_move_a_to_y() {
+	fn test_transfer_0xa8_tay_move_a_to_y() {
 		let mut cpu = CPU::new();
 
 		/* Disassembly:
@@ -439,7 +459,7 @@ mod test {
 	}
 
 	#[test]
-	fn test_0x98_tya_move_y_to_a() {
+	fn test_transfer_0x98_tya_move_y_to_a() {
 		let mut cpu = CPU::new();
 
 		/* Disassembly:
@@ -484,7 +504,7 @@ mod test {
 
 	// * Load Instruction Tests
 	#[test]
-	fn test_0xa9_lda_immediate_flags() {
+	fn test_load_0xa9_lda_immediate_flags() {
 		let mut cpu = CPU::new();
 
 		/* Disassembly:
@@ -501,7 +521,7 @@ mod test {
 	}
 
 	#[test]
-	fn test_0xa9_lda_zero_flag() {
+	fn test_load_0xa9_lda_zero_flag() {
 		let mut cpu = CPU::new();
 
 		/* Disassembly:
@@ -515,7 +535,7 @@ mod test {
 	}
 
 	#[test]
-	fn test_0xa5_lda_zero_page() {
+	fn test_load_0xa5_lda_zero_page() {
 		let mut cpu = CPU::new();
 		cpu.mem_write(0x10, 0x55);
 
@@ -529,7 +549,7 @@ mod test {
 	}
 
 	#[test]
-	fn test_0xa6_ldx_zero_page() {
+	fn test_load_0xa6_ldx_zero_page() {
 		let mut cpu = CPU::new();
 		cpu.mem_write(0x00AF, 0x1F);
 
@@ -543,7 +563,7 @@ mod test {
 	}
 
 	#[test]
-	fn test_0xad_lda_from_memory() {
+	fn test_load_0xad_lda_from_memory() {
 		let mut cpu = CPU::new();
 		cpu.mem_write(0x0102, 0xFF);
 
@@ -557,7 +577,7 @@ mod test {
 	}
 
 	#[test]
-	fn test_0xb6_ldx_zero_page_y() {
+	fn test_load_0xb6_ldx_zero_page_y() {
 		let mut cpu = CPU::new();
 		cpu.mem_write(0x0012, 0xBA);
 
@@ -572,7 +592,7 @@ mod test {
 	}
 
 	#[test]
-	fn test_0xbc_ldy_absolute_x() {
+	fn test_load_0xbc_ldy_absolute_x() {
 		let mut cpu = CPU::new();
 		cpu.mem_write(0x4157, 0x05);
 
@@ -588,7 +608,7 @@ mod test {
 
 	// * Store Instruction Tests
 	#[test]
-	fn test_0x85_sta_zero_page() {
+	fn test_store_0x85_sta_zero_page() {
 		let mut cpu = CPU::new();
 
 		/* Disassembly:
@@ -602,7 +622,7 @@ mod test {
 	}
 
 	#[test]
-	fn test_0x95_sta_zero_page_x() {
+	fn test_store_0x95_sta_zero_page_x() {
 		let mut cpu = CPU::new();
 
 		/* Disassembly:
@@ -618,7 +638,7 @@ mod test {
 	}
 
 	#[test]
-	fn test_0x99_sta_absolute_y() {
+	fn test_store_0x99_sta_absolute_y() {
 		let mut cpu = CPU::new();
 
 		/* Disassembly:
@@ -633,7 +653,7 @@ mod test {
 	}
 
 	#[test]
-	fn test_0x86_stx_zero_page() {
+	fn test_store_0x86_stx_zero_page() {
 		let mut cpu = CPU::new();
 
 		/* Disassembly:
@@ -647,7 +667,7 @@ mod test {
 	}
 
 	#[test]
-	fn test_0x84_sty_zero_page() {
+	fn test_store_0x84_sty_zero_page() {
 		let mut cpu = CPU::new();
 
 		/* Disassembly:
@@ -662,7 +682,7 @@ mod test {
 
 	// * Status Register Instruction Tests
 	#[test]
-	fn test_0x18_clc_flag() {
+	fn test_flag_0x18_clc() {
 		let mut cpu = CPU::new();
 
 		/* Disassembly:
@@ -679,7 +699,7 @@ mod test {
 	}
 
 	#[test]
-	fn test_0xd8_cld_flag() {
+	fn test_flag_0xd8_cld() {
 		let mut cpu = CPU::new();
 
 		/* Disassembly:
@@ -696,7 +716,7 @@ mod test {
 	}
 
 	#[test]
-	fn test_0x58_cli_flag() {
+	fn test_flag_0x58_cli() {
 		let mut cpu = CPU::new();
 
 		/* Disassembly:
@@ -713,7 +733,7 @@ mod test {
 	}
 
 	#[test]
-	fn test_0xb8_clv_flag() {
+	fn test_flag_0xb8_clv() {
 		let mut cpu = CPU::new();
 
 		/* Disassembly:
@@ -730,7 +750,7 @@ mod test {
 	}
 
 	#[test]
-	fn test_0x38_sec_flag() {
+	fn test_flag_0x38_sec() {
 		let mut cpu = CPU::new();
 
 		/* Disassembly:
@@ -743,7 +763,7 @@ mod test {
 	}
 
 	#[test]
-	fn test_0xf8_sed_flag() {
+	fn test_flag_0xf8_sed() {
 		let mut cpu = CPU::new();
 
 		/* Disassembly:
@@ -756,7 +776,7 @@ mod test {
 	}
 
 	#[test]
-	fn test_0x78_sei_flag() {
+	fn test_flag_0x78_sei() {
 		let mut cpu = CPU::new();
 
 		/* Disassembly:
@@ -766,6 +786,109 @@ mod test {
 		cpu.load_and_run(binary);
 
 		assert!(cpu.status.contains(Flags::INTERRUPT_DISABLE));
+	}
+
+	// * Branch Instruction Tests
+	#[test]
+	fn test_branch_0x90_bcc() {
+		let mut cpu = CPU::new();
+
+		/* Disassembly:
+		0000   18                   CLC
+		0001   90 03                BCC L0006
+		0003   A9 42                LDA #$42
+		0005   00                   BRK
+		0006   A9 24      L0006     LDA #$24
+		0008   00                   BRK */
+		let binary = vec![0x18, 0x90, 0x03, 0xA9, 0x42, 0x00, 0xA9, 0x24, 0x00];
+		cpu.load_and_run(binary);
+
+		assert_eq!(cpu.register_a, 0x24);
+	}
+
+	#[test]
+	fn test_branch_0xb0_bcs() {
+		let mut cpu = CPU::new();
+
+		/* Disassembly:
+		0000   38                   SEC
+		0001   B0 03                BCS L0006
+		0003   A9 42                LDA #$42
+		0005   00                   BRK
+		0006   A9 24      L0006     LDA #$24
+		0008   00                   BRK */
+		let binary = vec![0x38, 0xB0, 0x03, 0xA9, 0x42, 0x00, 0xA9, 0x24, 0x00];
+		cpu.load_and_run(binary);
+
+		assert_eq!(cpu.register_a, 0x24);
+	}
+
+	#[test]
+	fn test_branch_0xf0_beq() {
+		let mut cpu = CPU::new();
+
+		/* Disassembly:
+		0000   A2 00                LDX #$00
+		0002   F0 03                BEQ L0007
+		0004   A9 42                LDA #$42
+		0006   00                   BRK
+		0007   A9 24      L0007     LDA #$24
+		0009   00                   BRK */
+		let binary = vec![0xA2, 0x00, 0xF0, 0x03, 0xA9, 0x42, 0x00, 0xA9, 0x24, 0x00];
+		cpu.load_and_run(binary);
+
+		assert_eq!(cpu.register_a, 0x24);
+	}
+
+	#[test]
+	fn test_branch_0xd0_bne() {
+		let mut cpu = CPU::new();
+
+		/* Disassembly:
+		0000   A2 00                LDX #$00
+		0002   D0 03                BNE L0007
+		0004   A9 42                LDA #$42
+		0006   00                   BRK
+		0007   A9 24      L0007     LDA #$24
+		0009   00                   BRK */
+		let binary = vec![0xA2, 0x00, 0xD0, 0x03, 0xA9, 0x42, 0x00, 0xA9, 0x24, 0x00];
+		cpu.load_and_run(binary);
+
+		assert_eq!(cpu.register_a, 0x42);
+	}
+
+	#[test]
+	fn test_branch_0x30_bmi() {
+		let mut cpu = CPU::new();
+
+		/* Disassembly:
+		0000   A2 FF                LDX #$FF
+		0002   30 03                BMI L0007
+		0004   A9 42                LDA #$42
+		0006   00                   BRK
+		0007   A9 24      L0007     LDA #$24
+		0009   00                   BRK */
+		let binary = vec![0xA2, 0xFF, 0x30, 0x03, 0xA9, 0x42, 0x00, 0xA9, 0x24, 0x00];
+		cpu.load_and_run(binary);
+
+		assert_eq!(cpu.register_a, 0x24);
+	}
+
+	#[test]
+	fn test_branch_0x10_bpl() {
+		let mut cpu = CPU::new();
+
+		/* Disassembly:
+		0000   A2 FF                LDX #$FF
+		0002   10 03                BPL L0007
+		0004   A9 42                LDA #$42
+		0006   00                   BRK
+		0007   A9 24      L0007     LDA #$24
+		0009   00                   BRK */
+		let binary = vec![0xA2, 0xFF, 0x10, 0x03, 0xA9, 0x42, 0x00, 0xA9, 0x24, 0x00];
+		cpu.load_and_run(binary);
+
+		assert_eq!(cpu.register_a, 0x42);
 	}
 
 	// * General Tests
