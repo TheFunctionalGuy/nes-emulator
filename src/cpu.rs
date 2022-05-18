@@ -312,6 +312,8 @@ impl CPU {
 		}
 	}
 
+	// TODO: Maybe helper function for arithmetics which update A register
+
 	pub fn run(&mut self) {
 		let opcodes = &(*OPCODES_MAP);
 
@@ -399,6 +401,7 @@ impl CPU {
 				0x70 => self.branch(self.status.contains(Flags::OVERFLOW)),
 
 				// * Interrupt Instructions
+				// TODO: Set interrupt bit
 				0x00 => return,
 
 				// * Error case
@@ -416,6 +419,7 @@ impl CPU {
 mod test {
 	use super::*;
 
+	// * Transfer Instruction Tests
 	#[test]
 	fn test_transfer_0xaa_tax_move_a_to_x() {
 		let mut cpu = CPU::new();
@@ -445,37 +449,6 @@ mod test {
 	}
 
 	#[test]
-	fn test_0xca_dex_underflow() {
-		let mut cpu = CPU::new();
-
-		/* Disassembly:
-		0000   A2 01                LDX #$01
-		0002   CA                   DEX
-		0003   CA                   DEX
-		0004   00                   BRK */
-		let binary = vec![0xA2, 0x01, 0xCA, 0xCA, 0x00];
-		cpu.load_and_run(binary);
-
-		assert_eq!(cpu.register_x, 0xFF);
-	}
-
-	#[test]
-	fn test_0xe8_inx_overflow() {
-		let mut cpu = CPU::new();
-
-		/* Disassembly:
-		0000   A9 FF                LDA #$FF
-		0002   AA                   TAX
-		0003   E8                   INX
-		0004   E8                   INX
-		0005   00                   BRK */
-		let binary = vec![0xA9, 0xFF, 0xAA, 0xE8, 0xE8, 0x00];
-		cpu.load_and_run(binary);
-
-		assert_eq!(cpu.register_x, 0x01);
-	}
-
-	#[test]
 	fn test_transfer_0xa8_tay_move_a_to_y() {
 		let mut cpu = CPU::new();
 
@@ -501,36 +474,6 @@ mod test {
 		cpu.load_and_run(binary);
 
 		assert_eq!(cpu.register_a, 0x0A);
-	}
-
-	#[test]
-	fn test_0x88_dey_underflow() {
-		let mut cpu = CPU::new();
-
-		/* Disassembly:
-		0000   A0 01                LDY #$01
-		0002   88                   DEY
-		0003   88                   DEY
-		0004   00                   BRK */
-		let binary = vec![0xA0, 0x01, 0x88, 0x88, 0x00];
-		cpu.load_and_run(binary);
-
-		assert_eq!(cpu.register_y, 0xFF);
-	}
-
-	#[test]
-	fn test_0xc8_iny_overflow() {
-		let mut cpu = CPU::new();
-
-		/* Disassembly:
-		0000   A0 FF                LDY #$FF
-		0002   C8                   INY
-		0003   C8                   INY
-		0004   00                   BRK */
-		let binary = vec![0xA0, 0xFF, 0xC8, 0xC8, 0x00];
-		cpu.load_and_run(binary);
-
-		assert_eq!(cpu.register_y, 0x01);
 	}
 
 	// * Load Instruction Tests
@@ -711,6 +654,71 @@ mod test {
 		assert_eq!(cpu.memory[0x0017], 0x11);
 	}
 
+	// * Decrement & Increment Instruction Tests
+	// TODO: Test DEC & INC instructions
+	#[test]
+	fn test_dec_inc_0xca_dex_underflow() {
+		let mut cpu = CPU::new();
+
+		/* Disassembly:
+		0000   A2 01                LDX #$01
+		0002   CA                   DEX
+		0003   CA                   DEX
+		0004   00                   BRK */
+		let binary = vec![0xA2, 0x01, 0xCA, 0xCA, 0x00];
+		cpu.load_and_run(binary);
+
+		assert_eq!(cpu.register_x, 0xFF);
+	}
+
+	#[test]
+	fn test_dec_inc_0xe8_inx_overflow() {
+		let mut cpu = CPU::new();
+
+		/* Disassembly:
+		0000   A9 FF                LDA #$FF
+		0002   AA                   TAX
+		0003   E8                   INX
+		0004   E8                   INX
+		0005   00                   BRK */
+		let binary = vec![0xA9, 0xFF, 0xAA, 0xE8, 0xE8, 0x00];
+		cpu.load_and_run(binary);
+
+		assert_eq!(cpu.register_x, 0x01);
+	}
+
+	#[test]
+	fn test_dec_inc_0x88_dey_underflow() {
+		let mut cpu = CPU::new();
+
+		/* Disassembly:
+		0000   A0 01                LDY #$01
+		0002   88                   DEY
+		0003   88                   DEY
+		0004   00                   BRK */
+		let binary = vec![0xA0, 0x01, 0x88, 0x88, 0x00];
+		cpu.load_and_run(binary);
+
+		assert_eq!(cpu.register_y, 0xFF);
+	}
+
+	#[test]
+	fn test_dec_inc_0xc8_iny_overflow() {
+		let mut cpu = CPU::new();
+
+		/* Disassembly:
+		0000   A0 FF                LDY #$FF
+		0002   C8                   INY
+		0003   C8                   INY
+		0004   00                   BRK */
+		let binary = vec![0xA0, 0xFF, 0xC8, 0xC8, 0x00];
+		cpu.load_and_run(binary);
+
+		assert_eq!(cpu.register_y, 0x01);
+	}
+
+	// * TODO: Logical Operation Tests
+
 	// * Status Register Instruction Tests
 	#[test]
 	fn test_flag_0x18_clc() {
@@ -819,7 +827,7 @@ mod test {
 		assert!(cpu.status.contains(Flags::INTERRUPT_DISABLE));
 	}
 
-	// * Branch Instruction Tests
+	// * Conditional Branch Instruction Tests
 	#[test]
 	fn test_branch_0x90_bcc() {
 		let mut cpu = CPU::new();
